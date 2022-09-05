@@ -2,7 +2,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
         "namespace": "android_app",
-        "package_name": "app.netlify.cabsta_dev.twa",
+        "package_name": "app.netlify.dev-cabsta.twa",
         "sha256_cert_fingerprints": [
             "4B:C0:E8:B3:A8:34:93:17:72:48:9D:46:36:F8:C0:50:25:3F:B6:E1:42:0D:CF:43:F5:83:64:FC:F2:39:2D:1D"
         ]
