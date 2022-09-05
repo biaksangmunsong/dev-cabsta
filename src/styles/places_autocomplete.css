@@ -1,0 +1,33 @@
+.pac-container {
+    margin-top: 6px;
+    box-shadow: 0 10px 10px rgba(0,0,0,.1);
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    overflow: hidden;
+    border-radius: 6px;
+    padding-bottom: 10px;
+}
+
+.pac-item {
+    border: 0;
+    border-bottom: 1px solid #dddddd;
+    padding: 5px;
+    font-family: BeVietnamProRegular, sans-serif;
+    font-weight: 400;
+    color: #aaaaaa;
+}
+
+.pac-item:last-child {
+    border: 0;
+}
+
+.pac-item-query {
+    color: #555555;
+}
+
+.pac-matched {
+    color: #8a2be2;
+    font-family: BeVietnamProBold, sans-serif;
+    font-weight: 700;
+    color: #111111;
+}
