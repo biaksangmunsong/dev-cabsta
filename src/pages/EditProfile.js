@@ -19,15 +19,10 @@ const EditProfile = () => {
     const userData = useStore(state => state.userData)
     const setUserData = useStore(state => state.setUserData)
     const locationQueries = useStore(state => state.locationQueries)
-    const [ form, setForm ] = useState({
-        init: false,
-        profilePhoto: "",
-        name: "",
-        updating: false,
-        prepopulated: false,
-        error: null
-    })
-    const [ imageResizing, setImageResizing ] = useState(false)
+    const setImageToCrop = useStore(state => state.setImageToCrop)
+    const profileForm = useStore(state => state.profileForm)
+    const setProfileForm = useStore(state => state.setProfileForm)
+    
     const [ expandProfilePhoto, setExpandProfilePhoto ] = useState(false)
     const imageInputRef = useRef()
     const scrollableArea = useRef()
@@ -39,22 +34,26 @@ const EditProfile = () => {
     }
     
     const onImageSelected = async e => {
-        if (!e.target.files[0] || imageResizing){
+        if (!e.target.files[0] || profileForm.photoLoading){
             return
         }
 
-        setImageResizing(true)
+        const aspect = 1/1
+        setImageToCrop({
+            image: "loading",
+            aspect
+        })
+        navigate(`${location.pathname}?${locationQueries.join("&")}&image-cropper`)
         
         try {
-            const resizedImage = await resizeImage(e.target.files[0], 1000, 1000)
-            setForm({
-                ...form,
-                profilePhoto: resizedImage
+            const resizedImage = await resizeImage(e.target.files[0], 2000, 2000)
+            setImageToCrop({
+                image: resizedImage,
+                aspect
             })
-            setImageResizing(false)
         }
-        catch (err){
-            setImageResizing(false)
+        catch {
+            window.history.back()
         }
     }
 
@@ -68,53 +67,53 @@ const EditProfile = () => {
     const onNameInputChange = e => {
         const name = e.target.value.replace(/(\r\n|\n|\r)/gm, "")
         if (name.length <= 50){
-            setForm({...form,name})
+            setProfileForm({...profileForm,name})
         }
     }
     
     const updateProfile = async () => {
-        if (!form.prepopulated || form.updating){
+        if (!profileForm.prepopulated || profileForm.updating){
             return
         }
 
-        setForm({
-            ...form,
+        setProfileForm({
+            ...profileForm,
             updating: true,
             error: null
         })
         
-        if (!form.name){
+        if (!profileForm.name){
             await Haptics.notification({type: "ERROR"})
             if (scrollableArea.current){
                 scrollableArea.current.scrollTo(0,0)
             }
-            return setForm({
-                ...form,
+            return setProfileForm({
+                ...profileForm,
                 error: {
                     message: "Name is required"
                 }
             })
         }
 
-        if (form.name.length < 4){
+        if (profileForm.name.length < 4){
             await Haptics.notification({type: "ERROR"})
             if (scrollableArea.current){
                 scrollableArea.current.scrollTo(0,0)
             }
-            return setForm({
-                ...form,
+            return setProfileForm({
+                ...profileForm,
                 error: {
                     message: "Name too short, it should be at least 4 characters."
                 }
             })
         }
-        if (form.name.length > 50){
+        if (profileForm.name.length > 50){
             await Haptics.notification({type: "ERROR"})
             if (scrollableArea.current){
                 scrollableArea.current.scrollTo(0,0)
             }
-            return setForm({
-                ...form,
+            return setProfileForm({
+                ...profileForm,
                 error: {
                     message: "Name too long, it should not be more than 50 characters."
                 }
@@ -125,10 +124,10 @@ const EditProfile = () => {
             try {
                 const newUserData = {
                     ...userData.data,
-                    name: form.name,
-                    profilePhoto: form.profilePhoto ? {
-                        url: form.profilePhoto,
-                        thumbnail_url: form.profilePhoto
+                    name: profileForm.name,
+                    profilePhoto: profileForm.profilePhoto ? {
+                        url: profileForm.profilePhoto,
+                        thumbnail_url: profileForm.profilePhoto
                     } : null
                 }
                 
@@ -140,8 +139,8 @@ const EditProfile = () => {
                     ...userData,
                     data: newUserData
                 })
-                setForm({
-                    ...form,
+                setProfileForm({
+                    ...profileForm,
                     updating: false,
                     error: null
                 })
@@ -154,8 +153,8 @@ const EditProfile = () => {
                 if (scrollableArea.current){
                     scrollableArea.current.scrollTo(0,0)
                 }
-                setForm({
-                    ...form,
+                setProfileForm({
+                    ...profileForm,
                     updating: false,
                     error: null
                 })
@@ -168,20 +167,21 @@ const EditProfile = () => {
             navigate("/", {replace: true})
         }
         else {
-            if (!form.init){
+            if (!profileForm.init){
                 // prepopulate form
-                setForm({
+                setProfileForm({
+                    ...profileForm,
                     init: true,
                     profilePhoto: userData.data.profilePhoto ? userData.data.profilePhoto.url : "",
-                    name: userData.data.name,
+                    name: userData.data.name || "",
                     prepopulated: true,
                     updating: false,
                     error: null
                 })
             }
         }
-    }, [userData, navigate, form])
-
+    }, [userData, navigate, profileForm, setProfileForm])
+    
     const SetProfileBtn = () => {
 
         return (
@@ -192,11 +192,11 @@ const EditProfile = () => {
                 h-[50px]
                 float-right
                 p-[12px]
-                ${!form.updating ? "active:bg-[#eeeeee]" : ""}
+                ${!profileForm.updating ? "active:bg-[#eeeeee]" : ""}
                 translate-x-[12px]
             `} onClick={updateProfile}>
                 {
-                    form.updating ?
+                    profileForm.updating ?
                     <img src={Spinner} alt="loading" className="
                         block
                         w-full
@@ -222,7 +222,7 @@ const EditProfile = () => {
             {
                 userData.status === "signed-in" ?
                 <>
-                    <Header heading="Edit Profile" RightCTA={form.prepopulated ? SetProfileBtn : null}/>
+                    <Header heading="Edit Profile" RightCTA={profileForm.prepopulated ? SetProfileBtn : null}/>
                     <div className="
                         block
                         w-full
@@ -237,7 +237,7 @@ const EditProfile = () => {
                             mx-auto
                         ">
                             {
-                                form.error ?
+                                profileForm.error ?
                                 <div className="
                                     block
                                     w-full
@@ -251,7 +251,7 @@ const EditProfile = () => {
                                     bg-[#bb0000]
                                     rounded-[6px]
                                     mb-[30px]
-                                ">{form.error.message}</div> : ""
+                                ">{profileForm.error.message}</div> : ""
                             }
                             <div className="
                                 block
@@ -273,12 +273,9 @@ const EditProfile = () => {
                                     relative
                                     duration-[.2s]
                                     ease-in-out
-                                    border-[2px]
-                                    border-solid
-                                    border-[#111111]
-                                `} style={{backgroundImage: `url(${form.profilePhoto || ProfilePhoto})`}} onClick={onProfilePhotoClick}>
+                                `} style={{backgroundImage: `url(${profileForm.profilePhoto || ProfilePhoto})`}} onClick={onProfilePhotoClick}>
                                     {
-                                        imageResizing ?
+                                        profileForm.photoLoading ?
                                         <img src={SpinnerLight} alt="loading" className="
                                             block
                                             w-[24px]
@@ -338,7 +335,7 @@ const EditProfile = () => {
                                     id="name-input"
                                     placeholder="Enter Your Name"
                                     name="name"
-                                    value={form.name}
+                                    value={profileForm.name}
                                     onChange={onNameInputChange}
                                     minRows={1}
                                     maxRows={10}
@@ -376,7 +373,7 @@ const EditProfile = () => {
                                     absolute
                                     top-[20px]
                                     right-0
-                                ">{50-form.name.length}</div>
+                                ">{50-profileForm.name.length}</div>
                             </div>
                         </div>
                     </div>

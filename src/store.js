@@ -72,7 +72,21 @@ const store = set => ({
     setExpandMenu: bool => set(() => ({expandMenu: bool})),
 
     requestedRide: null,
-    setRequestedRide: data => set(() => ({requestedRide: data}))
+    setRequestedRide: data => set(() => ({requestedRide: data})),
+
+    imageToCrop: null,
+    setImageToCrop: image => set(() => ({imageToCrop: image})),
+
+    profileForm: {
+        init: false,
+        profilePhoto: "",
+        name: "",
+        updating: false,
+        prepopulated: false,
+        error: null,
+        photoLoading: false
+    },
+    setProfileForm: data => set(() => ({profileForm: data}))
 })
 
 const inputStore = set => ({

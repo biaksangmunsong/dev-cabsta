@@ -16,12 +16,14 @@ import PageNotFound from "./pages/PageNotFound"
 
 // import components
 import OfflineBanner from "./components/OfflineBanner"
+import ImageCropper from "./components/ImageCropper"
 
 const App = () => {
 
 	const location = useLocation()
 	const staticData = useStore(state => state.staticData)
 	const setViewport = useStore(state => state.setViewport)
+	const locationQueries = useStore(state => state.locationQueries)
 	const setLocationQueries = useStore(state => state.setLocationQueries)
     const userData = useStore(state => state.userData)
     const setUserData = useStore(state => state.setUserData)
@@ -29,8 +31,8 @@ const App = () => {
     const setNetworkStatus = useStore(state => state.setNetworkStatus)
     const googleMapsScriptLoaded = useStore(state => state.googleMapsScriptLoaded)
     const setGoogleMapsScriptLoaded = useStore(state => state.setGoogleMapsScriptLoaded)
-
-	// listen to location query change
+    
+    // listen to location query change
 	useEffect(() => {
 		const query = location.search.substring(1)
 		if (query){
@@ -131,6 +133,15 @@ const App = () => {
             })
         }
     }, [googleMapsScriptLoaded, setGoogleMapsScriptLoaded, networkStatus, staticData])
+
+    // disable Tab key
+    useEffect(() => {
+        window.addEventListener("keydown", e => {
+            if (e.key === "Tab"){
+                e.preventDefault()
+            }
+        })
+    }, [])
     
     return (
         <div className={`
@@ -148,6 +159,10 @@ const App = () => {
             {
                 (networkStatus < 1 && networkStatus !== -1) ?
                 <OfflineBanner/> : ""
+            }
+            {
+                locationQueries.includes("image-cropper") ?
+                <ImageCropper/> : ""
             }
             {
                 userData.status === "loading" ?

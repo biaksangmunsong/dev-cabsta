@@ -18,9 +18,6 @@ const Home = () => {
         if (userData.status === "signed-in"){
             navigate("/set-location")
         }
-        else {
-            window.document.querySelector("#phone-number-input").focus()
-        }
     }
     
     useEffect(() => {
@@ -77,7 +74,7 @@ const Home = () => {
                 h-[100px]
                 absolute
                 z-[20]
-                ${(requestBtnHidden || expandMenu || location.pathname !== "/") ? "-bottom-[110px]" : "bottom-0"}
+                ${(requestBtnHidden || expandMenu || location.pathname !== "/" || userData.status === "not-signed-in") ? "-bottom-[110px]" : "bottom-0"}
                 left-0
                 bg-[#ffffff]
                 py-[5px]

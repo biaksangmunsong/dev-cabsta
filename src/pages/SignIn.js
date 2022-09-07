@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import useStore from "../store"
 import { useParams, useNavigate } from "react-router-dom"
 import phone from "phone"
+import axios from "axios"
 import { Haptics } from "@capacitor/haptics"
 import { Storage } from "@capacitor/storage"
 import Header from "../components/Header"
 import InvalidIcon from "../components/icons/Invalid"
+import Slash from "../components/icons/Slash"
 import SadFace from "../components/icons/SadFace"
 import Ripple from "../images/ripple.gif"
 import SpinnerLight from "../images/spinner-light.gif"
@@ -61,39 +63,94 @@ const SignIn = () => {
                 data: null
             })
         }
-        
-        // simulate sending sms
-        setTimeout(async () => {
-            setVerification({
-                status: "code-sent",
-                error: null,
-                data: {
-                    codeId: "abcdef",
-                    phoneNumber: phoneNum.phoneNumber.split(phoneNum.countryCode).join("")
-                }
+
+        // send request
+        try {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/send-signin-otp`, {
+                phoneNumber: phoneNum.phoneNumber
             })
-            setResendTimer(10)
-            // if (window.location.pathname.startsWith("/signin/")){
-            //     await Haptics.notification({type: "ERROR"})
-            // }
-            // setVerification({
-            //     status: "error",
-            //     error: {
-            //         code: "server-error",
-            //         message: "Internal Server Error",
-            //         retry: () => {
-            //             setVerification({
-            //                 status: "not-init",
-            //                 error: null,
-            //                 data: null
-            //             })
-            //             setVerificationCode("")
-            //             sendVerificationCode()
-            //         }
-            //     },
-            //     data: null
-            // })
-        }, 1500)
+            if (res.status === 200 && res.data && res.data.otpId){
+                setResendTimer(10)
+                setVerification({
+                    status: "otp-sent",
+                    error: null,
+                    data: {
+                        otpId: res.data.otpId,
+                        phoneNumber: phoneNum.phoneNumber.replace(phoneNum.countryCode, "")
+                    }
+                })
+            }
+            else {
+                setVerification({
+                    status: "error",
+                    error: {
+                        message: "Something went wrong, please try again.",
+                        retry: () => {
+                            setVerification({
+                                status: "not-init",
+                                error: null,
+                                data: null
+                            })
+                            setVerificationCode("")
+                            sendVerificationCode()
+                        }
+                    },
+                    data: null
+                })
+            }
+        }
+        catch (err){
+            if (err && err.response && err.response.data){
+                if (err.response.data.code){
+                    setVerification({
+                        status: "error",
+                        error: {
+                            code: err.response.data.code,
+                            message: err.response.data.message || "Something went wrong, please try again.",
+                            verifying: false,
+                            verificationError: null
+                        },
+                        data: null
+                    })
+                }
+                else {
+                    setVerification({
+                        status: "error",
+                        error: {
+                            message: err.response.data.message || "Something went wrong, please try again.",
+                            retry: () => {
+                                setVerification({
+                                    status: "not-init",
+                                    error: null,
+                                    data: null
+                                })
+                                setVerificationCode("")
+                                sendVerificationCode()
+                            }
+                        },
+                        data: null
+                    })
+                }
+            }
+            else {
+                setVerification({
+                    status: "error",
+                    error: {
+                        message: "Something went wrong, please try again.",
+                        retry: () => {
+                            setVerification({
+                                status: "not-init",
+                                error: null,
+                                data: null
+                            })
+                            setVerificationCode("")
+                            sendVerificationCode()
+                        }
+                    },
+                    data: null
+                })
+            }
+        }
     }, [params.phone, verification])
 
     const resendCode = () => {
@@ -117,7 +174,7 @@ const SignIn = () => {
         }
     }
 
-    const verifyCode = e => {
+    const verifyCode = async e => {
         e.preventDefault()
         if (!verification.data || verification.data.verifying || verificationCode.length !== 4){
             return
@@ -132,42 +189,64 @@ const SignIn = () => {
             }
         })
 
-        // simulate verification process
-        setTimeout(async () => {
-            if (verificationCode !== "1234"){
+        // send request
+        try {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/signin`, {
+                otpId: verification.data.otpId,
+                otp: verificationCode
+            })
+            if (res.status === 200 && res.data){
+                await Storage.set({
+                    key: "user-data",
+                    value: JSON.stringify(res.data)
+                })
+                setUserData({
+                    init: true,
+                    status: "signed-in",
+                    data: res.data
+                })
+            }
+            else {
+                setVerification({
+                    ...verification,
+                    data: {
+                        ...verification.data,
+                        verifying: false,
+                        verificationError: {
+                            message: "Something went wrong, please try again."
+                        }
+                    }
+                })
+            }
+        }
+        catch (err){
+            if (scrollableArea.current){
+                scrollableArea.current.scrollTo(0,0)
+            }
+            if (err && err.status === 403){
                 await Haptics.notification({type: "ERROR"})
-                if (scrollableArea.current){
-                    scrollableArea.current.scrollTo(0,0)
-                }
                 return setVerification({
                     ...verification,
                     data: {
                         ...verification.data,
                         verifying: false,
                         verificationError: {
-                            message: "Invalid verification code"
+                            message: (err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
                         }
                     }
                 })
             }
-            const newUserData = {
-                phoneNumber: {
-                    withCountryCode: params.phone,
-                    withoutCountryCode: params.phone.replace("+91", "")
-                },
-                name: "",
-                profilePhoto: null
-            }
-            await Storage.set({
-                key: "user-data",
-                value: JSON.stringify(newUserData)
+            setVerification({
+                ...verification,
+                data: {
+                    ...verification.data,
+                    verifying: false,
+                    verificationError: {
+                        message: (err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
+                    }
+                }
             })
-            setUserData({
-                init: true,
-                status: "signed-in",
-                data: newUserData
-            })
-        }, 1500)
+        }
     }
     
     useEffect(() => {
@@ -180,7 +259,7 @@ const SignIn = () => {
     }, [sendVerificationCode, userData, navigate])
 
     useEffect(() => {
-        if (verification.status === "code-sent" && codeInputRef.current){
+        if (verification.status === "otp-sent" && codeInputRef.current){
             codeInputRef.current.focus()
         }
     }, [verification])
@@ -253,6 +332,8 @@ const SignIn = () => {
                             {
                                 verification.error.code === "invalid-phone-number" ?
                                 <InvalidIcon color="#bb0000"/> :
+                                verification.error.code === "otp-temporarily-not-allowed" ?
+                                <Slash color="#dd0000"/> :
                                 <SadFace/>
                             }
                         </div>
@@ -290,7 +371,7 @@ const SignIn = () => {
                     </div> : ""
                 }
                 {
-                    (verification.status === "code-sent" && verification.data) ?
+                    (verification.status === "otp-sent" && verification.data) ?
                     <form autoComplete="off" onSubmit={verifyCode} className="
                         block
                         w-[94%]
