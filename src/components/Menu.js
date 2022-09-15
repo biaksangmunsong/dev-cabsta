@@ -1,9 +1,10 @@
 import { useEffect } from "react"
 import useStore from "../store"
-import { useInputStore } from "../store"
+import { useInputStore, useUserStore } from "../store"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { Storage } from "@capacitor/storage"
 import ProfilePhoto from "../images/profile-photo.jpg"
+import Bell from "./icons/Bell"
 
 const Menu = () => {
 
@@ -13,8 +14,12 @@ const Menu = () => {
     const locationQueries = useStore(state => state.locationQueries)
     const expand = useStore(state => state.expandMenu)
     const setExpand = useStore(state => state.setExpandMenu)
-    const userData = useStore(state => state.userData)
-    const setUserData = useStore(state => state.setUserData)
+    const signedIn = useUserStore(state => state.signedIn)
+    const phoneNumber = useUserStore(state => state.phoneNumber)
+    const countryCode = useUserStore(state => state.countryCode)
+    const usersName = useUserStore(state => state.name)
+    const profilePhotoThumbnail = useUserStore(state => state.profilePhotoThumbnail)
+    const resetUserData = useUserStore(state => state.reset)
     const clearInputStore = useInputStore(state => state.clearInputStore)
     
     const items = [
@@ -51,12 +56,7 @@ const Menu = () => {
 
     const signOut = async () => {
         await Storage.remove({key: "user-data"})
-        setUserData({
-            ...userData,
-            init: true,
-            status: "not-signed-in",
-            data: null
-        })
+        resetUserData()
         clearInputStore()
         await Storage.remove({key: "history"})
         if (locationQueries.includes("expand-menu")){
@@ -100,6 +100,19 @@ const Menu = () => {
                     mx-auto
                     relative
                 ">
+                    <button type="button" className="
+                        inline-block
+                        w-[40px]
+                        h-[40px]
+                        active:bg-[#eeeeee]
+                        absolute
+                        z-[20]
+                        top-[10px]
+                        right-[45px]
+                        p-[8px]
+                    ">
+                        <Bell color="#555555"/>
+                    </button>
                     <button type="button" className={`
                         inline-block
                         w-[40px]
@@ -130,7 +143,7 @@ const Menu = () => {
                     mx-auto
                 ">
                     {
-                        userData.status === "signed-in" ?
+                        signedIn === "yes" ?
                         <div className={`
                             block
                             w-full
@@ -153,7 +166,7 @@ const Menu = () => {
                                 bg-cover
                                 rounded-[50%]
                                 mb-[15px]
-                            `} style={{backgroundImage: `url(${userData.data.profilePhoto ? userData.data.profilePhoto.thumbnail_url : ProfilePhoto})`}}></div>
+                            `} style={{backgroundImage: `url(${profilePhotoThumbnail || ProfilePhoto})`}}></div>
                             <div className="
                                 block
                                 w-full
@@ -164,7 +177,7 @@ const Menu = () => {
                                 leading-[23px]
                                 2xs:leading-[25px]
                                 text-[#111111]
-                            ">{userData.data.name || "Anonymous"}</div>
+                            ">{usersName || "Anonymous"}</div>
                             <div className="
                                 block
                                 w-full
@@ -175,7 +188,7 @@ const Menu = () => {
                                 leading-[18px]
                                 2xs:leading-[20px]
                                 text-[#999999]
-                            ">{userData.data.phoneNumber.withoutCountryCode}</div>
+                            ">{phoneNumber.replace(countryCode || "", "")}</div>
                             <Link to="/edit-profile" className="
                                 block
                                 max-w-[100%]
@@ -227,7 +240,7 @@ const Menu = () => {
                                 })
                             }
                             {
-                                userData.status === "signed-in" ?
+                                signedIn === "yes" ?
                                 <div className={`
                                     block
                                     w-full

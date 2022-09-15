@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import useStore from "../store"
+import { useUserStore } from "../store"
 import { useParams, useNavigate } from "react-router-dom"
 import phone from "phone"
 import axios from "axios"
 import { Haptics } from "@capacitor/haptics"
-import { Storage } from "@capacitor/storage"
 import Header from "../components/Header"
 import InvalidIcon from "../components/icons/Invalid"
 import Slash from "../components/icons/Slash"
@@ -16,8 +15,9 @@ const SignIn = () => {
 
     const params = useParams()
     const navigate = useNavigate()
-    const userData = useStore(state => state.userData)
-    const setUserData = useStore(state => state.setUserData)
+    const signedIn = useUserStore(state => state.signedIn)
+    const usersName = useUserStore(state => state.name)
+    const updateUser = useUserStore(state => state.update)
     const [ verification, setVerification ] = useState({
         status: "not-init",
         error: null,
@@ -196,14 +196,15 @@ const SignIn = () => {
                 otp: verificationCode
             })
             if (res.status === 200 && res.data){
-                await Storage.set({
-                    key: "user-data",
-                    value: JSON.stringify(res.data)
-                })
-                setUserData({
-                    init: true,
-                    status: "signed-in",
-                    data: res.data
+                updateUser({
+                    signedIn: "yes",
+                    _id: res.data._id || "",
+                    phoneNumber: res.data.phoneNumber || "",
+                    countryCode: res.data.countryCode || "",
+                    name: res.data.name || "",
+                    profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
+                    profilePhotoThumbnail: res.data.profilePhoto ? res.data.profilePhoto.thumbnail_url : "",
+                    authToken: res.data.authToken || ""
                 })
             }
             else {
@@ -250,13 +251,18 @@ const SignIn = () => {
     }
     
     useEffect(() => {
-        if (userData.status === "signed-in"){
-            navigate("/edit-profile", {replace: true})
+        if (signedIn === "yes"){
+            if (!usersName){
+                navigate("/edit-profile", {replace: true})
+            }
+            else {
+                window.history.back()
+            }
         }
         else {
             sendVerificationCode()
         }
-    }, [sendVerificationCode, userData, navigate])
+    }, [sendVerificationCode, signedIn, usersName, navigate])
 
     useEffect(() => {
         if (verification.status === "otp-sent" && codeInputRef.current){

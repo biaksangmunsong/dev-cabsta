@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import useStore from "../store"
+import { useUserStore } from "../store"
 import { useNavigate, useLocation } from "react-router-dom"
 import LongRightArrow from "../components/icons/LongRightArrow"
 import NotSignedIn from "../components/NotSignedIn"
@@ -10,12 +11,12 @@ const Home = () => {
 
     const navigate = useNavigate()
     const location = useLocation()
-    const userData = useStore(state => state.userData)
+    const signedIn = useUserStore(state => state.signedIn)
     const [ requestBtnHidden, setRequestBtnHidden ] = useState(false)
     const expandMenu = useStore(state => state.expandMenu)
 
     const requestARide = () => {
-        if (userData.status === "signed-in"){
+        if (signedIn === "yes"){
             navigate("/set-location")
         }
     }
@@ -30,15 +31,15 @@ const Home = () => {
     }, [expandMenu])
 
     useEffect(() => {
-        if (userData.status === "not-signed-in"){
+        if (signedIn === "no"){
             if (location.pathname === "/set-location" || location.pathname === "/choose-vehicle" || location.pathname === "/checkout"){
                 navigate("/", {replace: true})
             }
         }
-    }, [location.pathname, userData, navigate])
+    }, [location.pathname, signedIn, navigate])
     
     return (
-        <div className={`page ${(expandMenu || location.pathname !== "/") ? "" : "pb-[100px]"}`}>
+        <div className={`page ${(expandMenu || location.pathname !== "/" || signedIn === "no") ? "" : "pb-[100px]"}`}>
             <div className={`
                 block
                 w-full
@@ -49,7 +50,7 @@ const Home = () => {
                 scrollbar-hidden
             `}>
                 {
-                    userData.status === "not-signed-in" ?
+                    signedIn === "no" ?
                     <div className="
                         block
                         w-full
@@ -57,7 +58,7 @@ const Home = () => {
                         <Menu/>
                         <NotSignedIn setRequestBtnHidden={setRequestBtnHidden}/>
                     </div> :
-                    userData.status === "signed-in" ?
+                    signedIn === "yes" ?
                     <div className="
                         block
                         w-full
@@ -74,7 +75,7 @@ const Home = () => {
                 h-[100px]
                 absolute
                 z-[20]
-                ${(requestBtnHidden || expandMenu || location.pathname !== "/" || userData.status === "not-signed-in") ? "-bottom-[110px]" : "bottom-0"}
+                ${(requestBtnHidden || expandMenu || location.pathname !== "/" || signedIn === "no") ? "-bottom-[110px]" : "bottom-0"}
                 left-0
                 bg-[#ffffff]
                 py-[5px]

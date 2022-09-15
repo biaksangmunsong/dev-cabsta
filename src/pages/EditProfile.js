@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import useStore from "../store"
-import { Storage } from "@capacitor/storage"
+import { useUserStore } from "../store"
+import axios from "axios"
 import { Haptics } from "@capacitor/haptics"
 import TextareaAutosize from "react-textarea-autosize"
 import Header from "../components/Header"
@@ -16,16 +17,68 @@ const EditProfile = () => {
 
     const location = useLocation()
     const navigate = useNavigate()
-    const userData = useStore(state => state.userData)
-    const setUserData = useStore(state => state.setUserData)
+    const signedIn = useUserStore(state => state.signedIn)
+    const authToken = useUserStore(state => state.authToken)
+    const updateUserData = useUserStore(state => state.update)
     const locationQueries = useStore(state => state.locationQueries)
     const setImageToCrop = useStore(state => state.setImageToCrop)
     const profileForm = useStore(state => state.profileForm)
     const setProfileForm = useStore(state => state.setProfileForm)
     
     const [ expandProfilePhoto, setExpandProfilePhoto ] = useState(false)
+    const [ init, setInit ] = useState(false)
     const imageInputRef = useRef()
     const scrollableArea = useRef()
+
+    const getUserData = useCallback(async () => {
+        if (!authToken){
+            return
+        }
+
+        setInit(true)
+        
+        try {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/get-user-data`, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+            if (res.status === 200 && res.data){
+                setProfileForm({
+                    ...profileForm,
+                    error: null,
+                    profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
+                    name: res.data.name || "",
+                    prepopulated: true
+                })
+                updateUserData({
+                    ...res.data,
+                    profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
+                    profilePhotoThumbnail: res.data.profilePhoto ? res.data.profilePhoto.thumbnail_url : ""
+                })
+            }
+            else {
+                setProfileForm({
+                    ...profileForm,
+                    error: {
+                        code: "cannot-get-user-data",
+                        message: "Something went wrong, please try again."
+                    },
+                    prepopulated: false
+                })
+            }
+        }
+        catch (err){
+            setProfileForm({
+                ...profileForm,
+                error: {
+                    code: "cannot-get-user-data",
+                    message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
+                },
+                prepopulated: false
+            })
+        }
+    }, [authToken, profileForm, setProfileForm, updateUserData])
     
     const onProfilePhotoClick = () => {
         if (!locationQueries.includes("expand-profile-photo")){
@@ -72,7 +125,7 @@ const EditProfile = () => {
     }
     
     const updateProfile = async () => {
-        if (!profileForm.prepopulated || profileForm.updating){
+        if (!authToken || !profileForm.prepopulated || profileForm.updating){
             return
         }
 
@@ -119,28 +172,25 @@ const EditProfile = () => {
                 }
             })
         }
-        
-        setTimeout(async () => {
-            try {
-                const newUserData = {
-                    ...userData.data,
-                    name: profileForm.name,
-                    profilePhoto: profileForm.profilePhoto ? {
-                        url: profileForm.profilePhoto,
-                        thumbnail_url: profileForm.profilePhoto
-                    } : null
+
+        try {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/edit-profile`, {
+                profilePhoto: profileForm.profilePhoto,
+                name: profileForm.name
+            }, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
                 }
-                
-                await Storage.set({
-                    key: "user-data",
-                    value: JSON.stringify(newUserData)
-                })
-                setUserData({
-                    ...userData,
-                    data: newUserData
+            })
+            if (res.status === 200 && res.data){
+                updateUserData({
+                    name: res.data.name || "",
+                    profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
+                    profilePhotoThumbnail: res.data.profilePhoto ? res.data.profilePhoto.thumbnail_url : ""
                 })
                 setProfileForm({
                     ...profileForm,
+                    profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
                     updating: false,
                     error: null
                 })
@@ -148,7 +198,7 @@ const EditProfile = () => {
                     window.history.back()
                 }
             }
-            catch (err){
+            else {
                 await Haptics.notification({type: "ERROR"})
                 if (scrollableArea.current){
                     scrollableArea.current.scrollTo(0,0)
@@ -156,31 +206,38 @@ const EditProfile = () => {
                 setProfileForm({
                     ...profileForm,
                     updating: false,
-                    error: null
+                    error: {
+                        message: "Something went wrong, please try again."
+                    }
                 })
             }
-        }, 1500)
+        }
+        catch (err){
+            await Haptics.notification({type: "ERROR"})
+            if (scrollableArea.current){
+                scrollableArea.current.scrollTo(0,0)
+            }
+            setProfileForm({
+                ...profileForm,
+                updating: false,
+                error: {
+                    message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
+                }
+            })
+        }
     }
     
     useEffect(() => {
-        if (userData.status === "not-signed-in"){
-            navigate("/", {replace: true})
-        }
-        else {
-            if (!profileForm.init){
-                // prepopulate form
-                setProfileForm({
-                    ...profileForm,
-                    init: true,
-                    profilePhoto: userData.data.profilePhoto ? userData.data.profilePhoto.url : "",
-                    name: userData.data.name || "",
-                    prepopulated: true,
-                    updating: false,
-                    error: null
-                })
+        if (!init){
+            if (signedIn === "no"){
+                navigate("/", {replace: true})
+            }
+            else {
+                // get up to date user data and prepopulate fields
+                getUserData()
             }
         }
-    }, [userData, navigate, profileForm, setProfileForm])
+    }, [signedIn, getUserData, init, navigate])
     
     const SetProfileBtn = () => {
 
@@ -194,6 +251,7 @@ const EditProfile = () => {
                 p-[12px]
                 ${!profileForm.updating ? "active:bg-[#eeeeee]" : ""}
                 translate-x-[12px]
+                active:bg-[#eeeeee]
             `} onClick={updateProfile}>
                 {
                     profileForm.updating ?
@@ -220,7 +278,7 @@ const EditProfile = () => {
     return (
         <div className="page pt-[50px]">
             {
-                userData.status === "signed-in" ?
+                signedIn === "yes" ?
                 <>
                     <Header heading="Edit Profile" RightCTA={profileForm.prepopulated ? SetProfileBtn : null}/>
                     <div className="

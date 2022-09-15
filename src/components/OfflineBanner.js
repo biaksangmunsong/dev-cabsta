@@ -10,7 +10,7 @@ const OfflineBanner = () => {
             z-[100]
             top-0
             left-0
-            bg-[#111111]
+            bg-[#000000]
             font-defaultRegular
             text-[#ffffff]
             text-center

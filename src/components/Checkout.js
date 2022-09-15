@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import useStore from "../store"
+import { useUserStore } from "../store"
 import { useInputStore } from "../store"
 import TextareaAutosize from "react-textarea-autosize"
 import { Storage } from "@capacitor/storage"
@@ -128,7 +129,10 @@ const Checkout = ({checkOut, setCheckOut}) => {
     const setDistanceMatrix = useInputStore(state => state.setDistanceMatrix)
     const vehicleType = useInputStore(state => state.vehicleType)
     const setVehicleType = useInputStore(state => state.setVehicleType)
-    const userData = useStore(state => state.userData)
+    const signedIn = useUserStore(state => state.signedIn)
+    const phoneNumber = useUserStore(state => state.phoneNumber)
+    const usersName = useUserStore(state => state.name)
+    const profilePhoto = useUserStore(state => state.profilePhoto)
     const setRequestedRide = useStore(state => state.setRequestedRide)
     const [ name, setName ] = useState({
         prefilled: false,
@@ -198,8 +202,8 @@ const Checkout = ({checkOut, setCheckOut}) => {
             checkOut.loading ||
             name.value.length < 4 ||
             name.value.length > 50 ||
-            !userData.data ||
-            !userData.data.phoneNumber ||
+            signedIn === "no" ||
+            !phoneNumber ||
             !vehicleType.price ||
             !driver ||
             !pickupLocation ||
@@ -220,8 +224,8 @@ const Checkout = ({checkOut, setCheckOut}) => {
             const newHistoryItem = {
                 id: rideId,
                 name: name.value,
-                photo: userData.data.profilePhoto,
-                phoneNumber: userData.data.phoneNumber,
+                photo: profilePhoto,
+                phoneNumber: phoneNumber,
                 pickupLocation,
                 destination,
                 driver,
@@ -291,13 +295,13 @@ const Checkout = ({checkOut, setCheckOut}) => {
     }
     
     useEffect(() => {
-        if (userData.data && userData.data.name && !name.prefilled && location.pathname === "/checkout"){
+        if (usersName && !name.prefilled && location.pathname === "/checkout"){
             setName({
                 prefilled: true,
-                value: userData.data.name
+                value: usersName
             })
         }
-    }, [userData, location.pathname, name.prefilled])
+    }, [usersName, location.pathname, name.prefilled])
 
     useEffect(() => {
         if (location.pathname === "/checkout"){
@@ -449,7 +453,7 @@ const Checkout = ({checkOut, setCheckOut}) => {
                         ">{50-name.value.length}</div>
                     </div>
                     {
-                        (userData.data && userData.data.phoneNumber) ?
+                        (signedIn === "yes" && phoneNumber) ?
                         <div className="
                             block
                             w-full
@@ -475,7 +479,7 @@ const Checkout = ({checkOut, setCheckOut}) => {
                                 text-[14px]
                                 2xs:text-[16px]
                                 leading-[20px]
-                            ">{userData.data.phoneNumber.withoutCountryCode}</div>
+                            ">{phoneNumber.withoutCountryCode}</div>
                         </div> : ""
                     }
                     <div className="
@@ -708,8 +712,8 @@ const Checkout = ({checkOut, setCheckOut}) => {
                     ${(
                         name.value.length > 3 &&
                         name.value.length < 51 &&
-                        userData.data &&
-                        userData.data.phoneNumber &&
+                        signedIn === "yes" &&
+                        phoneNumber &&
                         vehicleType.price &&
                         driver &&
                         pickupLocation &&

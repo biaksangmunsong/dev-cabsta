@@ -32,13 +32,6 @@ const store = set => ({
     locationQueries: [],
     setLocationQueries: queries => set(() => ({locationQueries: queries})),
     
-    userData: {
-        init: false,
-        status: "loading",
-        data: null
-    },
-    setUserData: data => set(() => ({userData: data})),
-
     savedPlaces: {
         loading: false,
         error: null,
@@ -78,15 +71,17 @@ const store = set => ({
     setImageToCrop: image => set(() => ({imageToCrop: image})),
 
     profileForm: {
-        init: false,
         profilePhoto: "",
         name: "",
         updating: false,
-        prepopulated: false,
         error: null,
-        photoLoading: false
+        photoLoading: false,
+        prepopulated: false
     },
-    setProfileForm: data => set(() => ({profileForm: data}))
+    setProfileForm: data => set(() => ({profileForm: data})),
+
+    userDataIsUpToDate: false,
+    setUserDataIsUpToDate: bool => set(() => ({userDataIsUpToDate: bool}))
 })
 
 const inputStore = set => ({
@@ -116,11 +111,37 @@ const inputStore = set => ({
     }))
 })
 
+const userStore = set => ({
+    signedIn: "no",
+    _id: "",
+    phoneNumber: "",
+    countryCode: "",
+    name: "",
+    profilePhoto: "",
+    profilePhotoThumbnail: "",
+    authToken: "",
+    update: data => set(() => ({...data})),
+    reset: () => set(() => ({
+        signedIn: "no",
+        _id: "",
+        phoneNumber: "",
+        countryCode: "",
+        name: "",
+        profilePhoto: "",
+        profilePhotoThumbnail: "",
+        authToken: ""
+    }))
+})
+
 const useStore = create(store)
 const useInputStore = create(persist(inputStore, {
     name: "location-input",
     getStorages: () => window.localStorage
 }))
+const useUserStore = create(persist(userStore, {
+    name: "user-data",
+    getStorages: () => window.localStorage
+}))
 
 export default useStore
-export { useInputStore }
+export { useInputStore, useUserStore }
