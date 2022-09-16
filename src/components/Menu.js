@@ -188,7 +188,7 @@ const Menu = () => {
                                 leading-[18px]
                                 2xs:leading-[20px]
                                 text-[#999999]
-                            ">({countryCode}) {phoneNumber}</div>
+                            ">{phoneNumber.replace(countryCode || "", "")}</div>
                             <Link to="/edit-profile" className="
                                 block
                                 max-w-[100%]

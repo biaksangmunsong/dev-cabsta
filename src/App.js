@@ -14,6 +14,7 @@ import SignIn from "./pages/SignIn"
 import EditProfile from "./pages/EditProfile"
 import Ride from "./pages/Ride"
 import PageNotFound from "./pages/PageNotFound"
+import SavedPlaces from "./pages/SavedPlaces"
 
 // import components
 import OfflineBanner from "./components/OfflineBanner"
@@ -181,35 +182,8 @@ const App = () => {
                 <Route path="/history/:rideId" element={
                     <Ride/>
                 }/>
-                <Route path="/live-video" element={
-                    <div className="
-                        block
-                        w-full
-                        h-full
-                        fixed
-                        z-[100]
-                        top-0
-                        left-0
-                        bg-[#000000]
-                        bg-cover
-                        bg-no-repeat
-                        bg-center
-                        origin-center
-                    " style={{
-                        backgroundImage: "url(http://192.168.1.31:8080/video)",
-                        // transform: "rotateY(180deg)"
-                    }} onClick={async () => {
-                        if (window.torch){
-                            window.torch = false
-                            await fetch("http://192.168.1.31:8080/enabletorch")
-                        }
-                        else {
-                            window.torch = true
-                            await fetch("http://192.168.1.31:8080/disabletorch")
-                        }
-                    }}>
-                        
-                    </div>
+                <Route path="/saved-places" element={
+                    <SavedPlaces/>
                 }/>
                 <Route path="*" element={
                     <PageNotFound/>
