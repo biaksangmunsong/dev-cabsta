@@ -218,13 +218,13 @@ const EditProfile = () => {
                     profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
                     profilePhotoThumbnail: res.data.profilePhoto ? res.data.profilePhoto.thumbnail_url : ""
                 })
-                setProfileForm({
-                    ...profileForm,
-                    profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
-                    updating: false,
-                    error: null
-                })
                 if (window.location.pathname === "/edit-profile"){
+                    setProfileForm({
+                        ...profileForm,
+                        profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
+                        updating: false,
+                        error: null
+                    })
                     window.history.back()
                 }
             }
