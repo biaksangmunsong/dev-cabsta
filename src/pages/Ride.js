@@ -74,7 +74,10 @@ const Ride = () => {
     }, [details, requestedRide, setRequestedRide])
 
     return (
-        <div className="page pt-[50px]">
+        <div className={`
+            page
+            pt-[50px]
+        `}>
             <div className="
                 block
                 w-full

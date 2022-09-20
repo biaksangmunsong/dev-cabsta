@@ -39,7 +39,10 @@ const Home = () => {
     }, [location.pathname, signedIn, navigate])
     
     return (
-        <div className={`page ${(expandMenu || location.pathname !== "/" || signedIn === "no") ? "" : "pb-[100px]"}`}>
+        <div className={`
+            page
+            ${(expandMenu || location.pathname !== "/" || signedIn === "no") ? "" : "pb-[100px]"}
+        `}>
             <div className={`
                 block
                 w-full

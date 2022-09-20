@@ -79,7 +79,15 @@ const store = set => ({
         prepopulated: false
     },
     setProfileForm: data => set(() => ({profileForm: data})),
-
+    resetProfileForm: () => set(() => ({profileForm: {
+        profilePhoto: "",
+        name: "",
+        updating: false,
+        error: null,
+        photoLoading: false,
+        prepopulated: false
+    }})),
+    
     userDataIsUpToDate: false,
     setUserDataIsUpToDate: bool => set(() => ({userDataIsUpToDate: bool}))
 })

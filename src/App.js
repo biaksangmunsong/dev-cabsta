@@ -62,7 +62,7 @@ const App = () => {
         asyncFn()
     }, [setNetworkStatus])
     useEffect(() => {
-        if (networkStatus === 0 || location.pathname === "/choose-vehicle" || locationQueries.includes("image-cropper")){
+        if (networkStatus === 0 || location.pathname === "/choose-vehicle" || locationQueries.includes("image-cropper") || locationQueries.includes("edit-profile-photo")){
             window.document.querySelector("meta[name='theme-color']").setAttribute("content", "#000000")
         }
         else {

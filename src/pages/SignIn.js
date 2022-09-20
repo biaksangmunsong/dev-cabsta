@@ -271,7 +271,10 @@ const SignIn = () => {
     }, [verification])
 
     return (
-        <div className="page pt-[50px]">
+        <div className={`
+            page
+            pt-[50px]
+        `}>
             <Header heading="Sign In"/>
             <div className={`
                 ${(verification.status === "sending-code" || verification.status === "error") ? "flex" : "block"}

@@ -99,6 +99,7 @@ const Menu = () => {
                     max-w-[1000px]
                     mx-auto
                     relative
+                    overflow-visible
                 ">
                     <button type="button" className="
                         inline-block
@@ -134,6 +135,7 @@ const Menu = () => {
                 w-full
                 h-full
                 overflow-auto
+                pt-[30px]
                 pb-[30px]
             ">
                 <div className="
@@ -154,41 +156,52 @@ const Menu = () => {
                             duration-[.2s]
                             ease-in-out
                         `}>
-                            <div className={`
-                                inline-block
-                                align-middle
-                                w-[100px]
-                                h-[100px]
-                                overflow-hidden
-                                bg-[#eeeeee]
-                                bg-no-repeat
-                                bg-center
-                                bg-cover
-                                rounded-[50%]
-                                mb-[15px]
-                            `} style={{backgroundImage: `url(${profilePhotoThumbnail || ProfilePhoto})`}}></div>
                             <div className="
-                                block
+                                grid
+                                gap-[10px]
+                                items-center
                                 w-full
-                                font-defaultBold
-                                text-left
-                                text-[18px]
-                                2xs:text-[20px]
-                                leading-[23px]
-                                2xs:leading-[25px]
-                                text-[#111111]
-                            ">{usersName || "Anonymous"}</div>
-                            <div className="
-                                block
-                                w-full
-                                font-defaultRegular
-                                text-left
-                                text-[12px]
-                                2xs:text-[14px]
-                                leading-[18px]
-                                2xs:leading-[20px]
-                                text-[#999999]
-                            ">{phoneNumber.replace(countryCode || "", "")}</div>
+                                relative
+                            " style={{
+                                gridTemplateColumns: "60px auto"
+                            }}>
+                                <div className={`
+                                    inline-block
+                                    align-middle
+                                    w-[60px]
+                                    h-[60px]
+                                    overflow-hidden
+                                    bg-[#eeeeee]
+                                    bg-no-repeat
+                                    bg-center
+                                    bg-cover
+                                    rounded-[50%]
+                                `} style={{backgroundImage: `url(${profilePhotoThumbnail || ProfilePhoto})`}}></div>
+                                <div>
+                                    <div className="
+                                        block
+                                        w-full
+                                        font-defaultBold
+                                        text-left
+                                        text-[18px]
+                                        2xs:text-[20px]
+                                        leading-[23px]
+                                        2xs:leading-[25px]
+                                        text-[#111111]
+                                    ">{usersName || "Anonymous"}</div>
+                                    <div className="
+                                        block
+                                        w-full
+                                        font-defaultRegular
+                                        text-left
+                                        text-[12px]
+                                        2xs:text-[14px]
+                                        leading-[18px]
+                                        2xs:leading-[20px]
+                                        text-[#999999]
+                                    ">{phoneNumber.replace(countryCode || "", "")}</div>
+                                </div>
+                            </div>
                             <Link to="/edit-profile" className="
                                 block
                                 max-w-[100%]
