@@ -9,7 +9,7 @@ const SavedPlaces = () => {
 
     const location = useLocation()
     const locationQueries = useStore(state => state.locationQueries)
-    const [ newPlace, setNewPlace ] = useState({
+    const [ newPlace ] = useState({
         loading: false,
         error: null,
         data: null
