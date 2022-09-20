@@ -202,23 +202,45 @@ const Menu = () => {
                                     ">{phoneNumber.replace(countryCode || "", "")}</div>
                                 </div>
                             </div>
-                            <Link to="/edit-profile" className="
-                                block
-                                max-w-[100%]
-                                xs:max-w-[50%]
-                                font-defaultBold
-                                text-center
-                                text-[12px]
-                                2xs:text-[14px]
-                                leading-[40px]
-                                text-[#8a2be2]
-                                rounded-[6px]
-                                border
-                                border-solid
-                                border-[#8a2be2]
-                                active:bg-[#eeeeee]
+                            <div className="
+                                grid
+                                grid-cols-10
+                                gap-[10px]
                                 mt-[15px]
-                            ">Edit Profile</Link>
+                            ">
+                                <Link to="/edit-profile" className="
+                                    col-span-4
+                                    w-full
+                                    font-defaultBold
+                                    text-center
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                    leading-[40px]
+                                    text-[#111111]
+                                    rounded-[6px]
+                                    border
+                                    border-solid
+                                    border-[#dddddd]
+                                    bg-[#eeeeee]
+                                    active:bg-[#dddddd]
+                                ">Edit Profile</Link>
+                                <Link to="/change-phone-number" className="
+                                    col-span-6
+                                    w-full
+                                    font-defaultBold
+                                    text-center
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                    leading-[40px]
+                                    text-[#111111]
+                                    rounded-[6px]
+                                    border
+                                    border-solid
+                                    border-[#dddddd]
+                                    bg-[#eeeeee]
+                                    active:bg-[#dddddd]
+                                ">Change Phone Number</Link>
+                            </div>
                         </div> : ""
                     }
                     {
