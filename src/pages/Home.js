@@ -59,7 +59,7 @@ const Home = () => {
                         w-full
                     ">
                         <Menu/>
-                        <NotSignedIn setRequestBtnHidden={setRequestBtnHidden}/>
+                        <NotSignedIn/>
                     </div> :
                     signedIn === "yes" ?
                     <div className="

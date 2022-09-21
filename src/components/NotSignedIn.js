@@ -6,20 +6,12 @@ import { Link, useNavigate } from "react-router-dom"
 import LongRightArrow from "../components/icons/LongRightArrow"
 import Logo from "../images/logo.svg"
 
-const NotSignedIn = ({setRequestBtnHidden}) => {
+const NotSignedIn = () => {
 
     const expandMenu = useStore(state => state.expandMenu)
     const [ phoneNumber, setPhoneNumber ] = useState("")
     const [ phoneNumberError, setPhoneNumberError ] = useState("")
     const navigate = useNavigate()
-    
-    const onInputFocus = () => {
-        setRequestBtnHidden(true)
-    }
-
-    const onInputBlur = () => {
-        setRequestBtnHidden(false)
-    }
     
     const onPhoneNumberChange = e => {
         const pn = e.target.value
@@ -129,7 +121,7 @@ const NotSignedIn = ({setRequestBtnHidden}) => {
                     2xs:text-[16px]
                     text-left
                     text-[#111111]
-                " value={phoneNumber} onChange={onPhoneNumberChange} onFocus={onInputFocus} onBlur={onInputBlur}/>
+                " value={phoneNumber} onChange={onPhoneNumberChange}/>
                 <button type="submit" className="
                     block
                     w-[55px]

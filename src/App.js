@@ -15,6 +15,7 @@ import EditProfile from "./pages/EditProfile"
 import Ride from "./pages/Ride"
 import PageNotFound from "./pages/PageNotFound"
 import SavedPlaces from "./pages/SavedPlaces"
+import ChangePhoneNumber from "./pages/ChangePhoneNumber"
 
 // import components
 import OfflineBanner from "./components/OfflineBanner"
@@ -184,6 +185,9 @@ const App = () => {
                 }/>
                 <Route path="/saved-places" element={
                     <SavedPlaces/>
+                }/>
+                <Route path="/change-phone-number" element={
+                    <ChangePhoneNumber/>
                 }/>
                 <Route path="*" element={
                     <PageNotFound/>
