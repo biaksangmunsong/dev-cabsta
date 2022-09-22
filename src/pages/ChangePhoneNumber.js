@@ -17,14 +17,19 @@ const ChangePhoneNumber = () => {
     const phoneNumber = useUserStore(state => state.phoneNumber)
     const countryCode = useUserStore(state => state.countryCode)
     const authToken = useUserStore(state => state.authToken)
+    const updateUserData = useUserStore(state => state.update)
     const locationQueries = useStore(state => state.locationQueries)
     const [ newPhoneNumber, setNewPhoneNumber ] = useState("")
-    const [ sendingPhoneNumber, setSendingPhoneNumber ] = useState(false)
+    const [ submittingPhoneNumber, setSubmittingPhoneNumber ] = useState(false)
+    const [ verificationCode, setVerificationCode ] = useState("")
+    const [ verifyingCode, setVerifyingCode ] = useState(false)
     const [ error, setError ] = useState(null)
     const [ otpId, setOtpId ] = useState("")
+    const [ resendTimer, setResendTimer ] = useState(0)
     
     const scrollableArea = useRef(null)
     const newPhoneNumberRef = useRef(null)
+    const codeInputRef = useRef(null)
     
     const onNewPhoneNumberChange = e => {
         const pn = e.target.value
@@ -34,14 +39,16 @@ const ChangePhoneNumber = () => {
         }
     }
 
-    const sendNewPhoneNumber = async e => {
-        e.preventDefault()
+    const submitNewPhoneNumber = async e => {
+        if (e){
+            e.preventDefault()
+        }
         
         if (newPhoneNumberRef.current){
             newPhoneNumberRef.current.blur()
         }
         
-        if (!authToken || sendingPhoneNumber || newPhoneNumber.length !== 10 || newPhoneNumber === phoneNumber.replace(countryCode, "")){
+        if (!authToken || submittingPhoneNumber || newPhoneNumber.length !== 10 || newPhoneNumber === phoneNumber.replace(countryCode, "")){
             return
         }
         
@@ -58,7 +65,7 @@ const ChangePhoneNumber = () => {
             })
         }
         
-        setSendingPhoneNumber(true)
+        setSubmittingPhoneNumber(true)
 
         // send phone number to server
         try {
@@ -69,8 +76,9 @@ const ChangePhoneNumber = () => {
                     Authorization: `Bearer ${authToken}`
                 }
             })
-            setSendingPhoneNumber(false)
+            setSubmittingPhoneNumber(false)
             if (res.status === 200 && res.data){
+                setResendTimer(10)
                 setOtpId(res.data.otpId)
                 navigate(`${location.pathname}?verify-otp`)
             }
@@ -89,10 +97,21 @@ const ChangePhoneNumber = () => {
             if (scrollableArea.current){
                 scrollableArea.current.scrollTo(0,0)
             }
-            setSendingPhoneNumber(false)
+            setSubmittingPhoneNumber(false)
             setError({
                 message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
             })
+        }
+    }
+
+    const resubmitNewPhoneNumber = () => {
+        if (locationQueries.includes("verify-otp")){
+            if (resendTimer > 0){
+                return
+            }
+            window.history.back()
+            setSubmittingPhoneNumber(true)
+            submitNewPhoneNumber()
         }
     }
 
@@ -104,6 +123,70 @@ const ChangePhoneNumber = () => {
             }
         }
     }
+
+    const onCodeInputChange = e => {
+        const code = e.target.value
+        
+        if (code.length <= 4){
+            setVerificationCode(code)
+        }
+    }
+
+    const submitVerificationCode = async e => {
+        e.preventDefault()
+
+        if (!authToken || verifyingCode || !verificationCode || !otpId){
+            return
+        }
+
+        setError(null)
+        setVerifyingCode(true)
+
+        try {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/change-phone-number`, {
+                otpId,
+                otp: verificationCode
+            }, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+
+            setVerifyingCode(false)
+            
+            if (res.status === 200 && res.data){
+                updateUserData({
+                    phoneNumber: res.data.phoneNumber,
+                    countryCode: res.data.countryCode
+                })
+                if (window.location.search.includes("verify-otp")){
+                    window.history.back()
+                }
+                if (window.location.pathname === "/change-phone-number"){
+                    window.history.back()
+                }
+            }
+            else {
+                await Haptics.notification({type: "ERROR"})
+                if (scrollableArea.current){
+                    scrollableArea.current.scrollTo(0,0)
+                }
+                setError({
+                    message: "Something went wrong, please try again."
+                })
+            }
+        }
+        catch (err){
+            await Haptics.notification({type: "ERROR"})
+            if (scrollableArea.current){
+                scrollableArea.current.scrollTo(0,0)
+            }
+            setVerifyingCode(false)
+            setError({
+                message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
+            })
+        }
+    }
     
     useEffect(() => {
         if (signedIn === "no"){
@@ -112,10 +195,34 @@ const ChangePhoneNumber = () => {
     }, [signedIn, navigate])
 
     useEffect(() => {
+        setError(null)
         if (!locationQueries.includes("verify-otp")){
             setOtpId("")
         }
+        else {
+            // empty and focus otp input
+            setVerificationCode("")
+            if (codeInputRef.current){
+                codeInputRef.current.focus()
+            }
+        }
     }, [locationQueries])
+
+    useEffect(() => {
+        if (locationQueries.includes("verify-otp") && !otpId){
+            window.history.back()
+        }
+    }, [locationQueries, otpId])
+
+    useEffect(() => {
+        if (resendTimer){
+            setTimeout(() => {
+                if (window.location.pathname === "/change-phone-number" && window.location.search.includes("verify-otp")){
+                    setResendTimer(resendTimer-1)
+                }
+            }, 1000)
+        }
+    }, [resendTimer])
     
     return (
         <div className="
@@ -161,7 +268,17 @@ const ChangePhoneNumber = () => {
                                     mb-[10px]
                                 ">{error.message}</div> : ""
                             }
-                            <form onSubmit={sendNewPhoneNumber} className="
+                            <p className="
+                                block
+                                w-full
+                                font-defaultRegular
+                                text-[#444444]
+                                text-left
+                                text-[11px]
+                                2xs:text-[12px]
+                                mb-[4px]
+                            " onClick={e => e.preventDefault()}>New phone number</p>
+                            <form onSubmit={submitNewPhoneNumber} className="
                                 block
                                 w-full
                                 h-[55px]
@@ -191,7 +308,7 @@ const ChangePhoneNumber = () => {
                                         2xs:p-[18px]
                                     `}>
                                         {
-                                            sendingPhoneNumber ?
+                                            submittingPhoneNumber ?
                                             <img src={SpinnerLight} alt=""/> :
                                             <LongRightArrow color="#ffffff"/>
                                         }
@@ -210,47 +327,143 @@ const ChangePhoneNumber = () => {
                                     text-center
                                     text-[#222222]
                                 ">+91</div>
-                                <input type="number" id="phone-number-input" name="phone" placeholder="New Phone Number" className="
-                                    block
-                                    w-full
-                                    h-[55px]
-                                    2xs:h-[60px]
-                                    font-defaultBold
-                                    text-[14px]
-                                    2xs:text-[16px]
-                                    text-left
-                                    text-[#111111]
-                                " value={newPhoneNumber} onChange={onNewPhoneNumberChange} ref={newPhoneNumberRef} onFocus={onPhoneNumberInputFocus}/>
+                                <input
+                                    type="text"
+                                    pattern="[0-9]*"
+                                    inputMode="numeric"
+                                    id="phone-number-input"
+                                    name="phone"
+                                    placeholder="10 digit number"
+                                    className="
+                                        block
+                                        w-full
+                                        h-[55px]
+                                        2xs:h-[60px]
+                                        font-defaultBold
+                                        text-[14px]
+                                        2xs:text-[16px]
+                                        text-left
+                                        text-[#111111]
+                                    "
+                                    value={newPhoneNumber}
+                                    onChange={onNewPhoneNumberChange}
+                                    ref={newPhoneNumberRef}
+                                    onFocus={onPhoneNumberInputFocus}
+                                    onSelect={e => e.preventDefault()}
+                                />
                             </form>
+                            <p className="
+                                block
+                                w-full
+                                font-defaultRegular
+                                text-[#444444]
+                                text-left
+                                text-[11px]
+                                2xs:text-[12px]
+                                mt-[10px]
+                                mb-[4px]
+                            " onClick={e => e.preventDefault()}>{otpId ? "4 digit otp" : "Current phone number"}</p>
                             {
                                 (phoneNumber && countryCode) ?
                                 <div className="
                                     block
                                     w-full
-                                    mt-[10px]
-                                    bg-[#eeeeee]
-                                    rounded-[6px]
-                                    p-[10px]
+                                    min-h-[60px]
+                                    relative
                                 ">
                                     <div className="
                                         block
                                         w-full
-                                        font-defaultBold
-                                        text-left
-                                        text-[#111111]
-                                        text-[14px]
-                                        2xs:text-[16px]
-                                    "><span className="mr-[6px]">{countryCode}</span>{phoneNumber.replace(countryCode, "")}</div>
-                                    <div className="
+                                        bg-[#eeeeee]
+                                        rounded-[6px]
+                                        p-[10px]
+                                        absolute
+                                        top-0
+                                        left-0
+                                    " style={{
+                                        transform: `rotateX(${otpId ? 90 : 0}deg)`,
+                                        transformOrigin: "center top",
+                                        transition: ".2s ease-in-out"
+                                    }} onClick={e => e.preventDefault()}>
+                                        <div className="
+                                            block
+                                            w-full
+                                            font-defaultBold
+                                            text-left
+                                            text-[#111111]
+                                            text-[14px]
+                                            2xs:text-[16px]
+                                        "><span className="mr-[10px]">{countryCode}</span>{phoneNumber.replace(countryCode, "")}</div>
+                                        <div className="
+                                            block
+                                            w-full
+                                            font-Regular
+                                            text-left
+                                            text-[#888888]
+                                            text-[11px]
+                                            2xs:text-[12px]
+                                        ">You will receive an otp on this number</div>
+                                    </div>
+                                    <form onSubmit={submitVerificationCode} className="
                                         block
                                         w-full
-                                        font-Regular
-                                        text-left
-                                        text-[#888888]
-                                        text-[11px]
-                                        2xs:text-[12px]
-                                    ">You will receive an otp on this number</div>
+                                        h-[55px]
+                                        2xs:h-[60px]
+                                        overflow-hidden
+                                        rounded-[6px]
+                                        bg-[#eeeeee]
+                                        pr-[80px]
+                                        absolute
+                                        bottom-0
+                                        left-0
+                                    " style={{
+                                        transform: `rotateX(${otpId ? 0 : 90}deg)`,
+                                        transformOrigin: "center top",
+                                        transition: ".2s ease-in-out"
+                                    }} autoComplete="off">
+                                        <input type="text" pattern="[0-9]*" inputMode="numeric" name="phone" placeholder="Enter code" className="
+                                            block
+                                            w-full
+                                            h-[55px]
+                                            2xs:h-[60px]
+                                            font-defaultBold
+                                            text-[14px]
+                                            2xs:text-[16px]
+                                            text-left
+                                            text-[#111111]
+                                            px-[15px]
+                                        " value={verificationCode} onChange={onCodeInputChange} ref={codeInputRef} autoComplete="off"/>
+                                        <button type="submit" className={`
+                                            block
+                                            w-[80px]
+                                            h-[55px]
+                                            2xs:h-[60px]
+                                            absolute
+                                            top-0
+                                            right-0
+                                            ${(verificationCode.length !== 4 || verifyingCode) ? "bg-[#999999]" : "bg-[#111111] active:bg-[#333333]"}
+                                            font-defaultBold
+                                            text-center
+                                            text-[#ffffff]
+                                            text-[13px]
+                                            2xs:text-[14px]
+                                        `}>{verifyingCode ? <img src={SpinnerLight} alt="loading" className="inline-block w-[20px]"/> : "Verify"}</button>
+                                    </form>
                                 </div> : ""
+                            }
+                            {
+                                otpId ?
+                                <div className="
+                                    block
+                                    w-full
+                                    font-defaultBold
+                                    text-left
+                                    text-[#555555]
+                                    text-[11px]
+                                    2xs:text-[12px]
+                                    leading-[18px]
+                                    mt-[10px]
+                                " onClick={e => e.preventDefault()}>Didn't recieve code? <span className="text-[#8a2be2]" onClick={resubmitNewPhoneNumber}>Resend code</span>{resendTimer > 0 ? ` in ${resendTimer}s` : ""}</div> : ""
                             }
                         </div>
                     </div>

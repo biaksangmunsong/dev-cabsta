@@ -111,7 +111,7 @@ const NotSignedIn = () => {
                     text-center
                     text-[#222222]
                 ">+91</div>
-                <input type="number" id="phone-number-input" name="phone" placeholder="Phone Number" className="
+                <input type="text" pattern="[0-9]*" inputMode="numeric" id="phone-number-input" name="phone" placeholder="Phone Number" className="
                     block
                     w-full
                     h-[55px]

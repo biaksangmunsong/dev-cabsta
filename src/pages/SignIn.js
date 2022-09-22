@@ -438,7 +438,7 @@ const SignIn = () => {
                             pr-[80px]
                             mt-[20px]
                         ">
-                            <input type="number" name="phone" placeholder="4-digit code" className="
+                            <input type="text" pattern="[0-9]*" inputMode="numeric" name="phone" placeholder="4-digit code" className="
                                 block
                                 w-full
                                 h-[55px]

@@ -27,9 +27,10 @@ const SignedIn = () => {
             ${expandMenu ? "scale-0" : `${location.pathname !== "/" ? "pt-0" : "pt-[10px]"} pb-[30px]`}
             duration-[.2s]
             ease-in-out
-            origin-bottom-left
             text-left
-        `}>
+        `} style={{
+            transformOrigin: "bottom center"
+        }}>
             <div className={`
                 block
                 w-[94%]

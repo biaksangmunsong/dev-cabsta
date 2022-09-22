@@ -51,7 +51,7 @@ const Header = ({heading, RightCTA}) => {
                         text-[18px]
                         leading-[50px]
                         -translate-x-[16px]
-                    ">{heading}</div> : ""
+                    " onClick={e => e.preventDefault()}>{heading}</div> : ""
                 }
                 {RightCTA ? <RightCTA/> : ""}
             </div>

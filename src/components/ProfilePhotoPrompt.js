@@ -9,6 +9,7 @@ const ProfilePhotoPrompt = ({
 }) => {
 
     const locationQueries = useStore(state => state.locationQueries)
+    const profileForm = useStore(state => state.profileForm)
 
     return (
         <div className={`
@@ -105,7 +106,6 @@ const ProfilePhotoPrompt = ({
                         active:bg-[#dddddd]
                         px-[15px]
                         rounded-[6px]
-                        mr-[10px]
                     " onClick={onChangeProfilePhotoBtnClick}>
                         <span className="inline-block align-middle w-[20px]">
                             <EditIcon color="#111111"/>
@@ -119,17 +119,18 @@ const ProfilePhotoPrompt = ({
                             text-[12px]
                             2xs:text-[14px]
                             ml-[10px]
-                        ">Change</span>
+                        ">{profileForm.profilePhoto ? "Change" : "Upload"}</span>
                     </button>
-                    <button type="button" className="
+                    <button type="button" className={`
                         inline-block
                         align-middle
                         h-[50px]
                         bg-[#eeeeee]
-                        active:bg-[#dddddd]
                         px-[15px]
                         rounded-[6px]
-                    " onClick={onRemoveProfilePhotoBtnClick}>
+                        ml-[10px]
+                        ${!profileForm.profilePhoto ? "opacity-[.4] cursor-not-allowed" : "active:bg-[#dddddd]"}
+                    `} onClick={profileForm.profilePhoto ? onRemoveProfilePhotoBtnClick : null}>
                         <span className="inline-block align-middle w-[20px]">
                             <DeleteIcon color="#111111"/>
                         </span>
