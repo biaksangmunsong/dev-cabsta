@@ -18,6 +18,7 @@ const ChangePhoneNumber = () => {
     const countryCode = useUserStore(state => state.countryCode)
     const authToken = useUserStore(state => state.authToken)
     const updateUserData = useUserStore(state => state.update)
+    const resetUserData = useUserStore(state => state.reset)
     const locationQueries = useStore(state => state.locationQueries)
     const [ newPhoneNumber, setNewPhoneNumber ] = useState("")
     const [ submittingPhoneNumber, setSubmittingPhoneNumber ] = useState(false)
@@ -93,6 +94,11 @@ const ChangePhoneNumber = () => {
             }
         }
         catch (err){
+            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                // alert user that they have to reauthenticate and sign out
+                alert(err.response.data.message)
+                return resetUserData()
+            }
             await Haptics.notification({type: "ERROR"})
             if (scrollableArea.current){
                 scrollableArea.current.scrollTo(0,0)
@@ -157,7 +163,8 @@ const ChangePhoneNumber = () => {
             if (res.status === 200 && res.data){
                 updateUserData({
                     phoneNumber: res.data.phoneNumber,
-                    countryCode: res.data.countryCode
+                    countryCode: res.data.countryCode,
+                    authToken: res.data.authToken
                 })
                 if (window.location.search.includes("verify-otp")){
                     window.history.back()
@@ -177,6 +184,11 @@ const ChangePhoneNumber = () => {
             }
         }
         catch (err){
+            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                // alert user that they have to reauthenticate and sign out
+                alert(err.response.data.message)
+                return resetUserData()
+            }
             await Haptics.notification({type: "ERROR"})
             if (scrollableArea.current){
                 scrollableArea.current.scrollTo(0,0)

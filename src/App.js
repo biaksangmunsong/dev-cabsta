@@ -36,6 +36,7 @@ const App = () => {
     const setUserDataIsUpToDate = useStore(state => state.setUserDataIsUpToDate)
     const authToken = useUserStore(state => state.authToken)
     const updateUserData = useUserStore(state => state.update)
+    const resetUserData = useUserStore(state => state.reset)
     
     // listen to location query change
 	useEffect(() => {
@@ -108,7 +109,7 @@ const App = () => {
         })
     }, [])
 
-    // get up-to-date
+    // get up-to-date user data
     useEffect(() => {
         if (networkStatus === 1 && !userDataIsUpToDate && authToken){
             const getUserData = async () => {
@@ -132,13 +133,19 @@ const App = () => {
                         setUserDataIsUpToDate(false)
                     }
                 }
-                catch {
-                    setUserDataIsUpToDate(false)
+                catch (err){
+                    if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                        // sign out
+                        resetUserData()
+                    }
+                    else {
+                        setUserDataIsUpToDate(false)
+                    }
                 }
             }
             getUserData()
         }
-    }, [networkStatus, userDataIsUpToDate, setUserDataIsUpToDate, authToken, updateUserData])
+    }, [networkStatus, userDataIsUpToDate, setUserDataIsUpToDate, authToken, updateUserData, resetUserData])
     
     return (
         <div className={`

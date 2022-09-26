@@ -1,8 +1,7 @@
 import { useEffect } from "react"
 import useStore from "../store"
-import { useInputStore, useUserStore } from "../store"
+import { useUserStore } from "../store"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { Storage } from "@capacitor/storage"
 import ProfilePhoto from "../images/profile-photo.jpg"
 import Bell from "./icons/Bell"
 
@@ -20,7 +19,6 @@ const Menu = () => {
     const usersName = useUserStore(state => state.name)
     const profilePhotoThumbnail = useUserStore(state => state.profilePhotoThumbnail)
     const resetUserData = useUserStore(state => state.reset)
-    const clearInputStore = useInputStore(state => state.clearInputStore)
     
     const items = [
         {
@@ -55,10 +53,7 @@ const Menu = () => {
     }
 
     const signOut = async () => {
-        await Storage.remove({key: "user-data"})
         resetUserData()
-        clearInputStore()
-        await Storage.remove({key: "history"})
         if (locationQueries.includes("expand-menu")){
             window.history.back()
         }

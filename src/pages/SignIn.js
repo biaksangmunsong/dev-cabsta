@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
+import useStore from "../store"
 import { useUserStore } from "../store"
 import { useParams, useNavigate } from "react-router-dom"
 import phone from "phone"
@@ -18,6 +19,7 @@ const SignIn = () => {
     const signedIn = useUserStore(state => state.signedIn)
     const usersName = useUserStore(state => state.name)
     const updateUser = useUserStore(state => state.update)
+    const setUserDataIsUpToDate = useStore(state => state.setUserDataIsUpToDate)
     const [ verification, setVerification ] = useState({
         status: "not-init",
         error: null,
@@ -196,6 +198,7 @@ const SignIn = () => {
                 otp: verificationCode
             })
             if (res.status === 200 && res.data){
+                setUserDataIsUpToDate(true)
                 updateUser({
                     signedIn: "yes",
                     _id: res.data._id || "",

@@ -23,6 +23,7 @@ const EditProfile = () => {
     const signedIn = useUserStore(state => state.signedIn)
     const authToken = useUserStore(state => state.authToken)
     const updateUserData = useUserStore(state => state.update)
+    const resetUserData = useUserStore(state => state.reset)
     const locationQueries = useStore(state => state.locationQueries)
     const setImageToCrop = useStore(state => state.setImageToCrop)
     const profileForm = useStore(state => state.profileForm)
@@ -73,6 +74,11 @@ const EditProfile = () => {
             }
         }
         catch (err){
+            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                // alert user that they have to reauthenticate and sign out
+                alert(err.response.data.message)
+                return resetUserData()
+            }
             setProfileForm({
                 ...profileForm,
                 error: {
@@ -82,7 +88,7 @@ const EditProfile = () => {
                 prepopulated: false
             })
         }
-    }, [authToken, profileForm, setProfileForm, updateUserData])
+    }, [authToken, profileForm, setProfileForm, updateUserData, resetUserData])
 
     const retryGettingUserData = () => {
         setProfileForm({
@@ -243,6 +249,11 @@ const EditProfile = () => {
             }
         }
         catch (err){
+            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                // alert user that they have to reauthenticate and sign out
+                alert(err.response.data.message)
+                return resetUserData()
+            }
             await Haptics.notification({type: "ERROR"})
             if (scrollableArea.current){
                 scrollableArea.current.scrollTo(0,0)
@@ -258,16 +269,17 @@ const EditProfile = () => {
     }
     
     useEffect(() => {
-        if (!init){
-            if (signedIn === "no"){
-                navigate("/", {replace: true})
-            }
-            else {
-                // get up to date user data and prepopulate fields
-                getUserData()
-            }
+        if (!init && signedIn === "yes"){
+            // get up to date user data and prepopulate fields
+            getUserData()
         }
-    }, [signedIn, getUserData, init, navigate])
+    }, [signedIn, getUserData, init])
+
+    useEffect(() => {
+        if (signedIn === "no"){
+            navigate("/", {replace: true})
+        }
+    }, [signedIn, navigate])
 
     useEffect(() => {
         if (locationQueries.includes("expand-profile-photo")){

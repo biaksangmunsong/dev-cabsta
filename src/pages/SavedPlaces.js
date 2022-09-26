@@ -1,14 +1,18 @@
-import { useState } from "react"
-import { useLocation, Link } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useLocation, Link, useNavigate } from "react-router-dom"
 import useStore from "../store"
+import { useUserStore } from "../store"
 import Header from "../components/Header"
+import AddPlace from "../components/AddPlace"
 import Check from "../components/icons/Check"
 import Spinner from "../images/spinner.gif"
 
 const SavedPlaces = () => {
 
+    const navigate = useNavigate()
     const location = useLocation()
     const locationQueries = useStore(state => state.locationQueries)
+    const signedIn = useUserStore(state => state.signedIn)
     const [ newPlace ] = useState({
         loading: false,
         error: null,
@@ -61,12 +65,19 @@ const SavedPlaces = () => {
         
     }
 
+    useEffect(() => {
+        if (signedIn === "no"){
+            navigate("/", {replace: true})
+        }
+    }, [signedIn, navigate])
+    
     return (
         <div className={`
             page
             pt-[50px]
         `}>
             <Header heading={locationQueries.includes("add") ? "Add New Place" : "Saved Places"} RightCTA={locationQueries.includes("add") ? AddPlaceBtn : AddPlaceLink}/>
+            <AddPlace/>
         </div>
     )
 
