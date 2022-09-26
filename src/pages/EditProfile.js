@@ -43,7 +43,7 @@ const EditProfile = () => {
         setInit(true)
         
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/get-user-data`, {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-user-data`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
@@ -210,7 +210,7 @@ const EditProfile = () => {
         }
 
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/edit-profile`, {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/v1/edit-profile`, {
                 profilePhoto: profileForm.profilePhoto,
                 name: profileForm.name
             }, {

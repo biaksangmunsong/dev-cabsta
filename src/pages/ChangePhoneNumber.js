@@ -70,7 +70,7 @@ const ChangePhoneNumber = () => {
 
         // send phone number to server
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/send-phone-number-change-otp`, {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/v1/send-phone-number-change-otp`, {
                 newPhoneNumber: newPhoneNum.phoneNumber
             }, {
                 headers: {
@@ -149,7 +149,7 @@ const ChangePhoneNumber = () => {
         setVerifyingCode(true)
 
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/change-phone-number`, {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/v1/change-phone-number`, {
                 otpId,
                 otp: verificationCode
             }, {
