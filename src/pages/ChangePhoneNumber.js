@@ -364,105 +364,77 @@ const ChangePhoneNumber = () => {
                                     onSelect={e => e.preventDefault()}
                                 />
                             </form>
-                            <p className="
-                                block
-                                w-full
-                                font-defaultRegular
-                                text-[#444444]
-                                text-left
-                                text-[11px]
-                                2xs:text-[12px]
-                                mt-[10px]
-                                mb-[4px]
-                            " onClick={e => e.preventDefault()}>{otpId ? "4 digit otp" : "Current phone number"}</p>
-                            {
-                                (phoneNumber && countryCode) ?
-                                <div className="
+                            <p
+                                className="
                                     block
                                     w-full
-                                    min-h-[60px]
-                                    relative
-                                ">
-                                    <div className="
-                                        block
-                                        w-full
-                                        bg-[#eeeeee]
-                                        rounded-[6px]
-                                        p-[10px]
-                                        absolute
-                                        top-0
-                                        left-0
-                                    " style={{
-                                        transform: `rotateX(${otpId ? 90 : 0}deg)`,
-                                        transformOrigin: "center top",
-                                        transition: ".2s ease-in-out"
-                                    }} onClick={e => e.preventDefault()}>
-                                        <div className="
-                                            block
-                                            w-full
-                                            font-defaultBold
-                                            text-left
-                                            text-[#111111]
-                                            text-[14px]
-                                            2xs:text-[16px]
-                                        "><span className="mr-[10px]">{countryCode}</span>{phoneNumber.replace(countryCode, "")}</div>
-                                        <div className="
-                                            block
-                                            w-full
-                                            font-Regular
-                                            text-left
-                                            text-[#888888]
-                                            text-[11px]
-                                            2xs:text-[12px]
-                                        ">You will receive an otp on this number</div>
-                                    </div>
-                                    <form onSubmit={submitVerificationCode} className="
+                                    font-defaultRegular
+                                    text-[#444444]
+                                    text-left
+                                    text-[11px]
+                                    2xs:text-[12px]
+                                    mt-[10px]
+                                    mb-[4px]
+                                "
+                                onClick={e => e.preventDefault()}
+                                style={{
+                                    transform: `rotateX(${otpId ? 0 : 90}deg)`,
+                                    transformOrigin: "center top",
+                                    transition: ".2s ease-in-out"
+                                }}
+                            >4 digit otp</p>
+                            <div className="
+                                block
+                                w-full
+                                min-h-[60px]
+                                relative
+                            ">
+                                <form onSubmit={submitVerificationCode} className="
+                                    block
+                                    w-full
+                                    h-[55px]
+                                    2xs:h-[60px]
+                                    overflow-hidden
+                                    rounded-[6px]
+                                    bg-[#eeeeee]
+                                    pr-[80px]
+                                    absolute
+                                    bottom-0
+                                    left-0
+                                " style={{
+                                    transform: `rotateX(${otpId ? 0 : 90}deg)`,
+                                    transformOrigin: "center top",
+                                    transition: ".2s ease-in-out"
+                                }} autoComplete="off">
+                                    <input type="text" pattern="[0-9]*" inputMode="numeric" name="phone" placeholder="Enter code" className="
                                         block
                                         w-full
                                         h-[55px]
                                         2xs:h-[60px]
-                                        overflow-hidden
-                                        rounded-[6px]
-                                        bg-[#eeeeee]
-                                        pr-[80px]
+                                        font-defaultBold
+                                        text-[14px]
+                                        2xs:text-[16px]
+                                        text-left
+                                        text-[#111111]
+                                        px-[15px]
+                                    " value={verificationCode} onChange={onCodeInputChange} ref={codeInputRef} autoComplete="off"/>
+                                    <button type="submit" className={`
+                                        block
+                                        w-[80px]
+                                        h-[55px]
+                                        2xs:h-[60px]
                                         absolute
-                                        bottom-0
-                                        left-0
-                                    " style={{
-                                        transform: `rotateX(${otpId ? 0 : 90}deg)`,
-                                        transformOrigin: "center top",
-                                        transition: ".2s ease-in-out"
-                                    }} autoComplete="off">
-                                        <input type="text" pattern="[0-9]*" inputMode="numeric" name="phone" placeholder="Enter code" className="
-                                            block
-                                            w-full
-                                            h-[55px]
-                                            2xs:h-[60px]
-                                            font-defaultBold
-                                            text-[14px]
-                                            2xs:text-[16px]
-                                            text-left
-                                            text-[#111111]
-                                            px-[15px]
-                                        " value={verificationCode} onChange={onCodeInputChange} ref={codeInputRef} autoComplete="off"/>
-                                        <button type="submit" className={`
-                                            block
-                                            w-[80px]
-                                            h-[55px]
-                                            2xs:h-[60px]
-                                            absolute
-                                            top-0
-                                            right-0
-                                            ${(verificationCode.length !== 4 || verifyingCode) ? "bg-[#999999]" : "bg-[#111111] active:bg-[#333333]"}
-                                            font-defaultBold
-                                            text-center
-                                            text-[#ffffff]
-                                            text-[13px]
-                                            2xs:text-[14px]
-                                        `}>{verifyingCode ? <img src={SpinnerLight} alt="loading" className="inline-block w-[20px]"/> : "Verify"}</button>
-                                    </form>
-                                </div> : ""
-                            }
+                                        top-0
+                                        right-0
+                                        ${(verificationCode.length !== 4 || verifyingCode) ? "bg-[#999999]" : "bg-[#111111] active:bg-[#333333]"}
+                                        font-defaultBold
+                                        text-center
+                                        text-[#ffffff]
+                                        text-[13px]
+                                        2xs:text-[14px]
+                                    `}>{verifyingCode ? <img src={SpinnerLight} alt="loading" className="inline-block w-[20px]"/> : "Verify"}</button>
+                                </form>
+                            </div>
                             {
                                 otpId ?
                                 <div className="

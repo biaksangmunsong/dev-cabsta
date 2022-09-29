@@ -6,7 +6,7 @@ import axios from "axios"
 
 // import store
 import useStore from "./store"
-import { useUserStore } from "./store"
+import { useUserStore, useInputStore } from "./store"
 
 // import pages
 import Home from "./pages/Home"
@@ -34,9 +34,12 @@ const App = () => {
     const setGoogleMapsScriptLoaded = useStore(state => state.setGoogleMapsScriptLoaded)
     const userDataIsUpToDate = useStore(state => state.userDataIsUpToDate)
     const setUserDataIsUpToDate = useStore(state => state.setUserDataIsUpToDate)
+    const resetProfileForm = useStore(state => state.resetProfileForm)
+    const resetNewPlaceForm = useStore(state => state.resetNewPlaceForm)
     const authToken = useUserStore(state => state.authToken)
     const updateUserData = useUserStore(state => state.update)
     const resetUserData = useUserStore(state => state.reset)
+    const clearInputStore = useInputStore(state => state.clearInputStore)
     
     // listen to location query change
 	useEffect(() => {
@@ -114,7 +117,7 @@ const App = () => {
         if (networkStatus === 1 && !userDataIsUpToDate && authToken){
             const getUserData = async () => {
                 try {
-                    const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/get-user-data`, {
+                    const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-user-data`, {
                         headers: {
                             Authorization: `Bearer ${authToken}`
                         }
@@ -146,6 +149,15 @@ const App = () => {
             getUserData()
         }
     }, [networkStatus, userDataIsUpToDate, setUserDataIsUpToDate, authToken, updateUserData, resetUserData])
+
+    useEffect(() => {
+        // clear all form when signed out
+        if (!authToken){
+            resetProfileForm()
+            resetNewPlaceForm()
+            clearInputStore()
+        }
+    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore])
     
     return (
         <div className={`

@@ -87,6 +87,18 @@ const store = set => ({
         photoLoading: false,
         prepopulated: false
     }})),
+
+    newPlaceForm: {
+        title: "",
+        address: "",
+        coords: null
+    },
+    setNewPlaceForm: data => set(() => ({newPlaceForm: data})),
+    resetNewPlaceForm: () => set(() => ({newPlaceForm: {
+        title: "",
+        formatted_address: "",
+        coords: null
+    }})),
     
     userDataIsUpToDate: false,
     setUserDataIsUpToDate: bool => set(() => ({userDataIsUpToDate: bool}))

@@ -77,7 +77,10 @@ const SavedPlaces = () => {
             pt-[50px]
         `}>
             <Header heading={locationQueries.includes("add") ? "Add New Place" : "Saved Places"} RightCTA={locationQueries.includes("add") ? AddPlaceBtn : AddPlaceLink}/>
-            <AddPlace/>
+            {
+                locationQueries.includes("add") ?
+                <AddPlace/> : ""
+            }
         </div>
     )
 
