@@ -104,6 +104,11 @@ const store = set => ({
     setUserDataIsUpToDate: bool => set(() => ({userDataIsUpToDate: bool}))
 })
 
+const hints = set => ({
+    newPlaceLocationSelector: "show",
+    hideNewPlaceLocationSelector: () => set(() => ({newPlaceLocationSelector: "hide"}))
+})
+
 const inputStore = set => ({
     pickupLocation: null,
     setPickupLocation: data => set(() => ({pickupLocation: data})),
@@ -154,6 +159,10 @@ const userStore = set => ({
 })
 
 const useStore = create(store)
+const useHints = create(persist(hints, {
+    name: "hints",
+    getStorages: () => window.localStorage
+}))
 const useInputStore = create(persist(inputStore, {
     name: "location-input",
     getStorages: () => window.localStorage
@@ -164,4 +173,4 @@ const useUserStore = create(persist(userStore, {
 }))
 
 export default useStore
-export { useInputStore, useUserStore }
+export { useHints, useInputStore, useUserStore }

@@ -1,23 +1,35 @@
-import { useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Haptics, ImpactStyle } from "@capacitor/haptics"
+import { Link } from "react-router-dom"
 import useStore from "../store"
+import { useHints } from "../store"
+import TextareaAutosize from "react-textarea-autosize"
 import getAddress from "../lib/getAddress"
+import ChevronRight from "./icons/ChevronRight"
+import LeftArrow from "./icons/LeftArrow"
+import XIcon from "./icons/XIcon"
+import StarIcon from "./icons/Star"
 import StarPin from "../images/star-pin.png"
 
 const AddPlace = () => {
 
+    const [ searchInput, setSearchInput ] = useState("")
+    const [ coords, setCoords ] = useState(null)
+    const locationQueries = useStore(state => state.locationQueries)
     const newPlaceForm = useStore(state => state.newPlaceForm)
     const setNewPlaceForm = useStore(state => state.setNewPlaceForm)
     const staticData = useStore(state => state.staticData)
     const googleMapsScriptLoaded = useStore(state => state.googleMapsScriptLoaded)
+    const newPlaceLocationSelector = useHints(state => state.newPlaceLocationSelector)
+    const hideNewPlaceLocationSelector = useHints(state => state.hideNewPlaceLocationSelector)
     const mapsRef = useRef(null)
     const mapsContainerRef = useRef(null)
     const titleInputRef = useRef(null)
-    const addressInputRef = useRef(null)
+    const searchInputRef = useRef(null)
     const geocoder = useRef(null)
     const marker = useRef(null)
-    const locationAutocomplete = useRef(null)
-    
+    const searchAutocomplete = useRef(null)
+
     const onTitleInputChange = e => {
         const title = e.target.value.replace(/(\r\n|\n|\r)/gm, "")
         if (title.length <= 100){
@@ -28,31 +40,36 @@ const AddPlace = () => {
         }
     }
 
-    const reverseGeocode = useCallback(async location => {
+    const reverseGeocode = async location => {
+        if (searchInputRef.current){
+            searchInputRef.current.blur()
+        }
+        
         try {
             // reverse geocode center of map
             if (!geocoder.current){
                 geocoder.current = new window.google.maps.Geocoder()
             }
+
             const reverseGeocodedData = await geocoder.current.geocode({location})
             const formatted_address = getAddress(reverseGeocodedData)
-            setNewPlaceForm({
-                ...newPlaceForm,
-                address: formatted_address
-            })
-            if (addressInputRef.current){
-                addressInputRef.current.value = formatted_address
+
+            setSearchInput(formatted_address)
+            setCoords(location)
+            
+            if (searchInputRef.current){
+                searchInputRef.current.value = formatted_address
             }
         }
         catch {
-            // empty address input
-            setNewPlaceForm({
-                ...newPlaceForm,
-                address: ""
-            })
-            if (addressInputRef.current){
-                addressInputRef.current.value = ""
+            // empty search input
+            setSearchInput("")
+            if (searchInputRef.current){
+                searchInputRef.current.value = ""
             }
+
+            // reset coords
+            setCoords(null)
             
             // remove marker
             if (marker.current){
@@ -60,29 +77,46 @@ const AddPlace = () => {
                 marker.current = null
             }
         }
-    }, [newPlaceForm, setNewPlaceForm])
-    
-    const onAddressInputChange = useCallback(e => {
-        const place = locationAutocomplete.current.getPlace()
+    }
+
+    const clearSearchInput = () => {
+        setSearchInput("")
+        setCoords(null)
         
-        if (!place){
-            setNewPlaceForm({
-                ...newPlaceForm,
-                address: e.target.value
-            })
+        if (searchInputRef.current){
+            searchInputRef.current.value = ""
+            searchInputRef.current.focus()
+        }
+        if (marker.current){
+            marker.current.setMap(null)
+            marker.current = null
+        }
+    }
+    
+    const onSearchInputChange = useCallback(e => {
+        if (e){
+            if (e.target){
+                if (e.target.value === ""){
+                    clearSearchInput()
+                }
+                else {
+                    setSearchInput(e.target.value)
+                }
+            }
         }
         else {
-            if (place.geometry && addressInputRef.current){
-                const coords = {
+            const place = searchAutocomplete.current.getPlace()
+            if (place && place.geometry && searchInputRef.current){
+                const newCoords = {
                     lat: place.geometry.location.lat(),
                     lng: place.geometry.location.lng()
                 }
-                setNewPlaceForm({
-                    ...newPlaceForm,
-                    address: addressInputRef.current.value
-                })
+
+                setSearchInput(searchInputRef.current.value)
+                setCoords(newCoords)
+                
                 if (mapsRef.current){
-                    mapsRef.current.setCenter(coords)
+                    mapsRef.current.setCenter(newCoords)
                     mapsRef.current.setZoom(18)
                 }
     
@@ -90,7 +124,7 @@ const AddPlace = () => {
                 if (!marker.current){
                     // create marker
                     marker.current = new window.google.maps.Marker({
-                        position: coords,
+                        position: newCoords,
                         map: mapsRef.current,
                         icon: StarPin,
                         draggable: true
@@ -107,21 +141,18 @@ const AddPlace = () => {
                     })
                 }
                 else {
-                    marker.current.setPosition(coords)
+                    marker.current.setPosition(newCoords)
                 }
             }
         }
-    }, [newPlaceForm, setNewPlaceForm, reverseGeocode])
+    }, [])
     
-    const blurInputs = () => {
-        if (titleInputRef.current){
-            titleInputRef.current.blur()
-        }
-        if (addressInputRef.current){
-            addressInputRef.current.blur()
+    const blurSearchInput = () => {
+        if (searchInputRef.current){
+            searchInputRef.current.blur()
         }
     }
-
+    
     useEffect(() => {
         if (googleMapsScriptLoaded && !mapsRef.current && mapsContainerRef.current){
             // init maps
@@ -136,7 +167,7 @@ const AddPlace = () => {
             }
             mapsRef.current = new window.google.maps.Map(mapsContainerRef.current, mapOptions)
 
-            // listen to maps dragend
+            // listen to map click event
             mapsRef.current.addListener("click", async e => {
                 if (marker.current) return
 
@@ -148,7 +179,7 @@ const AddPlace = () => {
                     lng: e.latLng.lng()
                 }
                 
-                // create marker
+                // // create marker
                 marker.current = new window.google.maps.Marker({
                     position: location,
                     map: mapsRef.current,
@@ -169,10 +200,10 @@ const AddPlace = () => {
                 reverseGeocode(location)
             })
         }
-    }, [googleMapsScriptLoaded, reverseGeocode, staticData])
+    }, [googleMapsScriptLoaded, staticData])
 
     useEffect(() => {
-        if (googleMapsScriptLoaded && addressInputRef.current && !locationAutocomplete.current){
+        if (googleMapsScriptLoaded && searchInputRef.current && !searchAutocomplete.current){
             // init places autocomplete
             const autocompleteOptions = {
                 componentRestrictions: {
@@ -186,10 +217,16 @@ const AddPlace = () => {
                 strictBounds: true
             }
             
-            locationAutocomplete.current = new window.google.maps.places.Autocomplete(addressInputRef.current, autocompleteOptions)
-            locationAutocomplete.current.addListener("place_changed", onAddressInputChange)
+            searchAutocomplete.current = new window.google.maps.places.Autocomplete(searchInputRef.current, autocompleteOptions)
+            searchAutocomplete.current.addListener("place_changed", onSearchInputChange)
         }
-    }, [googleMapsScriptLoaded, onAddressInputChange, staticData])
+    }, [googleMapsScriptLoaded, onSearchInputChange, staticData])
+
+    useEffect(() => {
+        if (locationQueries.includes("select-location") && mapsRef.current && coords){
+            mapsRef.current.setCenter(coords)
+        }
+    }, [locationQueries, coords])
     
     return (
         <div className="
@@ -197,6 +234,8 @@ const AddPlace = () => {
             w-full
             h-full
             overflow-hidden
+            py-[20px]
+            relative
         ">
             <div className="
                 block
@@ -205,43 +244,47 @@ const AddPlace = () => {
                 h-full
                 mx-auto
                 relative
-                pt-[135px]
-                pb-[15px]
+                z-[10]
+                overflow-auto
             ">
                 <div className="
                     block
                     w-full
-                    min-h-[50px]
                     bg-[#ffffff]
-                    border-[2px]
+                    border-[1px]
                     border-solid
-                    border-[#dddddd]
-                    rounded-[6px]
-                    absolute
+                    border-[#bbbbbb]
+                    relative
                     z-[10]
-                    top-[10px]
-                    left-0
+                    overflow-hidden
+                    mb-[15px]
+                    2xs:mb-[10px]
                 ">
-                    <input
+                    <TextareaAutosize
                         id="place-title-input"
-                        placeholder="Title* - Eg. Home, Office, etc."
+                        placeholder="Title - Eg. Home, Office, etc."
                         name="place-title"
                         value={newPlaceForm.title}
                         onChange={onTitleInputChange}
                         ref={titleInputRef}
+                        minRows={1}
+                        maxRows={10}
                         className="
                             block
                             w-full
-                            h-[50px]
                             font-defaultBold
                             text-left
                             text-[#111111]
                             text-[14px]
                             2xs:text-[16px]
+                            leading-[20px]
+                            py-[15px]
                             relative
-                            z-[9]
+                            z-[5]
                             pr-[50px]
                             pl-[10px]
+                            focus:bg-[#eeeeee]
+                            resize-none
                         "
                     />
                     <div className="
@@ -254,60 +297,224 @@ const AddPlace = () => {
                         2xs:text-[12px]
                         leading-[50px]
                         absolute
-                        z-[8]
+                        z-[10]
                         top-0
                         right-0
                     ">{100-newPlaceForm.title.length}</div>
                 </div>
+                <Link to="/saved-places?add&select-location" className="
+                    block
+                    w-full
+                    relative
+                    px-[40px]
+                    border-b
+                    border-solid
+                    border-[#dddddd]
+                    py-[10px]
+                    2xs:py-[15px]
+                    active:bg-[#eeeeee]
+                ">
+                    <div className="
+                        block
+                        w-[30px]
+                        h-[30px]
+                        absolute
+                        top-1/2
+                        -translate-y-1/2
+                        left-0
+                        bg-[#111111]
+                        p-[6px]
+                        rounded-[50%]
+                    ">
+                        <StarIcon color="#ffffff"/>
+                    </div>
+                    <div className={`
+                        block
+                        w-full
+                        font-defaultBold
+                        text-left
+                        text-[#111111]
+                        text-[16px]
+                        2xs:text-[18px]
+                        leading-[22px]
+                        whitespace-nowrap
+                        overflow-hidden
+                        text-ellipsis
+                    `}>Location</div>
+                    <div className={`
+                        block
+                        w-full
+                        font-defaultRegular
+                        text-left
+                        text-[#8a2be2]
+                        text-[12px]
+                        2xs:text-[14px]
+                        leading-[20px]
+                        whitespace-nowrap
+                        overflow-hidden
+                        text-ellipsis
+                    `}>Set location on map</div>
+                    <div className="
+                        block
+                        w-[20px]
+                        h-[20px]
+                        absolute
+                        top-1/2
+                        -translate-y-1/2
+                        right-[10px]
+                    ">
+                        <ChevronRight color="#111111"/>
+                    </div>
+                </Link>
+            </div>
+            <div className={`
+                block
+                w-full
+                h-full
+                overflow-hidden
+                absolute
+                z-[20]
+                ${locationQueries.includes("select-location") ? "top-0" : "top-[120%]"}
+                left-0
+                bg-[#ffffff]
+                duration-[.2s]
+                ease-in-out
+            `}>
                 <div className="
                     block
                     w-full
-                    min-h-[50px]
+                    h-[50px]
                     bg-[#ffffff]
-                    border-[2px]
-                    border-solid
-                    border-[#dddddd]
-                    rounded-[6px]
                     absolute
                     z-[10]
-                    top-[70px]
+                    top-0
                     left-0
                 ">
-                    <input
-                        id="place-title-input"
-                        placeholder="Address*"
-                        name="place-title"
-                        ref={addressInputRef}
-                        onChange={onAddressInputChange}
-                        className="
+                    <div className="
+                        block
+                        w-[94%]
+                        max-w-[1000px]
+                        h-full
+                        mx-auto
+                        relative
+                        py-[5px]
+                    ">
+                        <button type="button" className="
                             block
-                            w-full
-                            h-[50px]
-                            font-defaultBold
-                            text-left
-                            text-[#111111]
-                            text-[14px]
-                            2xs:text-[16px]
-                            relative
-                            z-[9]
-                            px-[10px]
-                            text-ellipsis
-                        "
-                    />
+                            w-[40px]
+                            h-[40px]
+                            absolute
+                            z-[10]
+                            top-[5px]
+                            left-0
+                            p-[11px]
+                            active:bg-[#dddddd]
+                        " onClick={() => window.history.back()}>
+                            <LeftArrow color="#111111"/>
+                        </button>
+                        <input
+                            type="text"
+                            placeholder="Search"
+                            ref={searchInputRef}
+                            onChange={onSearchInputChange}
+                            className="
+                                block
+                                w-full
+                                h-full
+                                bg-[#eeeeee]
+                                px-[40px]
+                                text-ellipsis
+                            "
+                        />
+                        {
+                            searchInput ?
+                            <button type="button" className="
+                                block
+                                w-[40px]
+                                h-[40px]
+                                absolute
+                                z-[10]
+                                top-[5px]
+                                right-0
+                                p-[12px]
+                                active:bg-[#dddddd]
+                            " onClick={clearSearchInput}>
+                                <XIcon color="#888888"/>
+                            </button> : ""
+                        }
+                    </div>
                 </div>
+                {
+                    newPlaceLocationSelector === "show" ?
+                    <div className="
+                        block
+                        w-full
+                        py-[6px]
+                        bg-[rgba(255,255,255,.9)]
+                        absolute
+                        z-[9]
+                        top-[49px]
+                        left-1/2
+                        -translate-x-1/2
+                        border-b
+                        border-solid
+                        border-[#dddddd]
+                    ">
+                        <div className="
+                            block
+                            w-[94%]
+                            max-w-[1000px]
+                            mx-auto
+                        ">
+                            <p className="
+                                block
+                                w-full
+                                font-defaultRegular
+                                text-left
+                                text-[#888888]
+                                text-[10px]
+                                2xs:text-[12px]
+                                mb-[4px]
+                            "><b className="font-defaultBold">Hint:</b> Tap on map to drop a pin on location, and drag the pin to change location.</p>
+                            <button className="
+                                inline-block
+                                font-defaultBold
+                                text-[#8a2be2]
+                                text-[12px]
+                                2xs:text-[14px]
+                                text-center
+                            " onClick={hideNewPlaceLocationSelector}>Got it</button>
+                        </div>
+                    </div> : ""
+                }
                 <div className="
                     block
                     w-full
                     h-full
                     overflow-hidden
                     bg-[#eeeeee]
-                    relative
+                    absolute
                     z-[5]
-                    border-[2px]
-                    border-solid
-                    border-[#dddddd]
-                    rounded-[6px]
-                " ref={mapsContainerRef} onTouchEnd={blurInputs}></div>
+                    top-0
+                    left-0
+                " ref={mapsContainerRef} onTouchEnd={blurSearchInput}></div>
+                <button type="button" className={`
+                    block
+                    w-[94%]
+                    max-w-[500px]
+                    h-[55px]
+                    absolute
+                    z-[10]
+                    bottom-[50px]
+                    left-1/2
+                    -translate-x-1/2
+                    font-defaultBold
+                    text-[#ffffff]
+                    text-center
+                    text-[14px]
+                    2xs:text-[16px]
+                    ${(searchInput && coords) ? "bg-[#111111] active:bg-[#444444]" : "bg-[#888888]"}
+                `}>Done</button>
             </div>
         </div>
     )

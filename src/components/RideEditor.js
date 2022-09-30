@@ -802,7 +802,6 @@ const Editor = () => {
                     relative
                     z-[10]
                     bg-[#ffffff]
-                    border-[2px]
                     border-solid
                     ${(activeInput === "destination" && location.pathname === "/set-location") ? "border-[2px] border-[#111111]" : "border-[1px] border-[#bbbbbb]"}
                     ${location.pathname !== "/set-location" ? "bg-[#eeeeee]" : ""}

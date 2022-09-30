@@ -70,13 +70,24 @@ const SavedPlaces = () => {
             navigate("/", {replace: true})
         }
     }, [signedIn, navigate])
+
+    useEffect(() => {
+        if (window.location.search.includes("select-location")){
+            navigate("/saved-places?add", {replace: true})
+        }
+    }, [navigate])
     
     return (
         <div className={`
             page
-            pt-[50px]
+            ${!locationQueries.includes("select-location") ? "pt-[50px]" : ""}
+            duration-[.2s]
+            ease-in-out
         `}>
-            <Header heading={locationQueries.includes("add") ? "Add New Place" : "Saved Places"} RightCTA={locationQueries.includes("add") ? AddPlaceBtn : AddPlaceLink}/>
+            {
+                !locationQueries.includes("select-location") ?
+                <Header heading={locationQueries.includes("add") ? "Add New Place" : "Saved Places"} RightCTA={locationQueries.includes("add") ? AddPlaceBtn : AddPlaceLink}/> : ""
+            }
             {
                 locationQueries.includes("add") ?
                 <AddPlace/> : ""
