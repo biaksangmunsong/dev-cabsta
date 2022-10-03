@@ -91,13 +91,17 @@ const store = set => ({
     newPlaceForm: {
         title: "",
         address: "",
-        coords: null
+        coords: null,
+        loading: false,
+        error: null
     },
     setNewPlaceForm: data => set(() => ({newPlaceForm: data})),
     resetNewPlaceForm: () => set(() => ({newPlaceForm: {
         title: "",
-        formatted_address: "",
-        coords: null
+        address: "",
+        coords: null,
+        loading: false,
+        error: null
     }})),
     
     userDataIsUpToDate: false,

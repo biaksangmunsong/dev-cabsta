@@ -13,15 +13,17 @@ import StarPin from "../images/star-pin.png"
 
 const AddPlace = () => {
 
-    const [ searchInput, setSearchInput ] = useState("")
-    const [ coords, setCoords ] = useState(null)
     const locationQueries = useStore(state => state.locationQueries)
     const newPlaceForm = useStore(state => state.newPlaceForm)
     const setNewPlaceForm = useStore(state => state.setNewPlaceForm)
     const staticData = useStore(state => state.staticData)
     const googleMapsScriptLoaded = useStore(state => state.googleMapsScriptLoaded)
+    const resetNewPlaceForm = useStore(state => state.resetNewPlaceForm)
     const newPlaceLocationSelector = useHints(state => state.newPlaceLocationSelector)
     const hideNewPlaceLocationSelector = useHints(state => state.hideNewPlaceLocationSelector)
+    const [ searchInput, setSearchInput ] = useState("")
+    const [ reverseGeocoderLoading, setReverseGeocoderLoading ] = useState(false)
+    const [ coords, setCoords ] = useState(null)
     const mapsRef = useRef(null)
     const mapsContainerRef = useRef(null)
     const titleInputRef = useRef(null)
@@ -29,6 +31,7 @@ const AddPlace = () => {
     const geocoder = useRef(null)
     const marker = useRef(null)
     const searchAutocomplete = useRef(null)
+    const scrollableArea = useRef(null)
 
     const onTitleInputChange = e => {
         const title = e.target.value.replace(/(\r\n|\n|\r)/gm, "")
@@ -44,6 +47,13 @@ const AddPlace = () => {
         if (searchInputRef.current){
             searchInputRef.current.blur()
         }
+
+        setSearchInput("")
+        setCoords(null)
+        if (searchInputRef.current){
+            searchInputRef.current.value = ""
+        }
+        setReverseGeocoderLoading(true)
         
         try {
             // reverse geocode center of map
@@ -60,6 +70,8 @@ const AddPlace = () => {
             if (searchInputRef.current){
                 searchInputRef.current.value = formatted_address
             }
+
+            setReverseGeocoderLoading(false)
         }
         catch {
             // empty search input
@@ -76,6 +88,8 @@ const AddPlace = () => {
                 marker.current.setMap(null)
                 marker.current = null
             }
+            
+            setReverseGeocoderLoading(false)
         }
     }
 
@@ -152,6 +166,17 @@ const AddPlace = () => {
             searchInputRef.current.blur()
         }
     }
+
+    const doneSelectLocation = () => {
+        if (!searchInput || !coords) return
+        
+        setNewPlaceForm({
+            ...newPlaceForm,
+            address: searchInput,
+            coords
+        })
+        window.history.back()
+    }
     
     useEffect(() => {
         if (googleMapsScriptLoaded && !mapsRef.current && mapsContainerRef.current){
@@ -227,6 +252,16 @@ const AddPlace = () => {
             mapsRef.current.setCenter(coords)
         }
     }, [locationQueries, coords])
+
+    useEffect(() => {
+        if (newPlaceForm.error && scrollableArea.current){
+            scrollableArea.current.scrollTo(0,0)
+        }
+    }, [newPlaceForm])
+    
+    useEffect(() => {
+        resetNewPlaceForm()
+    }, [resetNewPlaceForm])
     
     return (
         <div className="
@@ -234,138 +269,160 @@ const AddPlace = () => {
             w-full
             h-full
             overflow-hidden
-            py-[20px]
             relative
         ">
             <div className="
                 block
-                w-[94%]
-                max-w-[1000px]
+                w-full
                 h-full
-                mx-auto
-                relative
-                z-[10]
                 overflow-auto
-            ">
+                pt-[20px]
+                pb-[40px]
+            " ref={scrollableArea}>
                 <div className="
                     block
-                    w-full
-                    bg-[#ffffff]
-                    border-[1px]
-                    border-solid
-                    border-[#bbbbbb]
+                    w-[94%]
+                    max-w-[1000px]
+                    mx-auto
                     relative
                     z-[10]
-                    overflow-hidden
-                    mb-[15px]
-                    2xs:mb-[10px]
                 ">
-                    <TextareaAutosize
-                        id="place-title-input"
-                        placeholder="Title - Eg. Home, Office, etc."
-                        name="place-title"
-                        value={newPlaceForm.title}
-                        onChange={onTitleInputChange}
-                        ref={titleInputRef}
-                        minRows={1}
-                        maxRows={10}
-                        className="
+                    {
+                        newPlaceForm.error ?
+                        <div className="
+                            block
+                            w-full
+                            p-[10px]
+                            rounded-[6px]
+                            bg-[#dd0000]
+                            mb-[15px]
+                            font-defaultRegular
+                            text-[12px]
+                            2xs:text-[14px]
+                            text-left
+                            text-[#ffffff]
+                        ">{newPlaceForm.error.message}</div> : ""
+                    }
+                    <div className="
+                        block
+                        w-full
+                        bg-[#ffffff]
+                        border-[1px]
+                        border-solid
+                        border-[#bbbbbb]
+                        relative
+                        z-[10]
+                        overflow-hidden
+                        mb-[15px]
+                        2xs:mb-[10px]
+                    ">
+                        <TextareaAutosize
+                            id="place-title-input"
+                            placeholder="Title* - Eg. Home, Office, etc."
+                            name="place-title"
+                            value={newPlaceForm.title}
+                            onChange={onTitleInputChange}
+                            ref={titleInputRef}
+                            minRows={1}
+                            maxRows={10}
+                            className="
+                                block
+                                w-full
+                                font-defaultBold
+                                text-left
+                                text-[#111111]
+                                text-[14px]
+                                2xs:text-[16px]
+                                leading-[20px]
+                                py-[15px]
+                                relative
+                                z-[5]
+                                pr-[50px]
+                                pl-[10px]
+                                focus:bg-[#eeeeee]
+                                resize-none
+                            "
+                        />
+                        <label htmlFor="place-title-input" className="
+                            block
+                            w-[50px]
+                            font-defaultRegular
+                            text-center
+                            text-[#444444]
+                            text-[11px]
+                            2xs:text-[12px]
+                            leading-[50px]
+                            absolute
+                            z-[10]
+                            top-0
+                            right-0
+                        ">{100-newPlaceForm.title.length}</label>
+                    </div>
+                    <Link to="/saved-places?add&select-location" className="
+                        block
+                        w-full
+                        relative
+                        px-[40px]
+                        border-b
+                        border-solid
+                        border-[#dddddd]
+                        py-[10px]
+                        2xs:py-[15px]
+                        active:bg-[#eeeeee]
+                    ">
+                        <div className="
+                            block
+                            w-[30px]
+                            h-[30px]
+                            absolute
+                            top-1/2
+                            -translate-y-1/2
+                            left-0
+                            bg-[#111111]
+                            p-[6px]
+                            rounded-[50%]
+                        ">
+                            <StarIcon color="#ffffff"/>
+                        </div>
+                        <div className={`
                             block
                             w-full
                             font-defaultBold
                             text-left
                             text-[#111111]
-                            text-[14px]
-                            2xs:text-[16px]
+                            text-[16px]
+                            2xs:text-[18px]
+                            leading-[22px]
+                            whitespace-nowrap
+                            overflow-hidden
+                            text-ellipsis
+                        `}>Location*</div>
+                        <div className={`
+                            block
+                            w-full
+                            font-defaultRegular
+                            text-left
+                            text-[#8a2be2]
+                            text-[12px]
+                            2xs:text-[14px]
                             leading-[20px]
-                            py-[15px]
-                            relative
-                            z-[5]
-                            pr-[50px]
-                            pl-[10px]
-                            focus:bg-[#eeeeee]
-                            resize-none
-                        "
-                    />
-                    <div className="
-                        block
-                        w-[50px]
-                        font-defaultRegular
-                        text-center
-                        text-[#444444]
-                        text-[11px]
-                        2xs:text-[12px]
-                        leading-[50px]
-                        absolute
-                        z-[10]
-                        top-0
-                        right-0
-                    ">{100-newPlaceForm.title.length}</div>
+                            whitespace-nowrap
+                            overflow-hidden
+                            text-ellipsis
+                        `}>{newPlaceForm.address || "Set location on map"}</div>
+                        <div className="
+                            block
+                            w-[20px]
+                            h-[20px]
+                            absolute
+                            top-1/2
+                            -translate-y-1/2
+                            right-[10px]
+                        ">
+                            <ChevronRight color="#111111"/>
+                        </div>
+                    </Link>
                 </div>
-                <Link to="/saved-places?add&select-location" className="
-                    block
-                    w-full
-                    relative
-                    px-[40px]
-                    border-b
-                    border-solid
-                    border-[#dddddd]
-                    py-[10px]
-                    2xs:py-[15px]
-                    active:bg-[#eeeeee]
-                ">
-                    <div className="
-                        block
-                        w-[30px]
-                        h-[30px]
-                        absolute
-                        top-1/2
-                        -translate-y-1/2
-                        left-0
-                        bg-[#111111]
-                        p-[6px]
-                        rounded-[50%]
-                    ">
-                        <StarIcon color="#ffffff"/>
-                    </div>
-                    <div className={`
-                        block
-                        w-full
-                        font-defaultBold
-                        text-left
-                        text-[#111111]
-                        text-[16px]
-                        2xs:text-[18px]
-                        leading-[22px]
-                        whitespace-nowrap
-                        overflow-hidden
-                        text-ellipsis
-                    `}>Location</div>
-                    <div className={`
-                        block
-                        w-full
-                        font-defaultRegular
-                        text-left
-                        text-[#8a2be2]
-                        text-[12px]
-                        2xs:text-[14px]
-                        leading-[20px]
-                        whitespace-nowrap
-                        overflow-hidden
-                        text-ellipsis
-                    `}>Set location on map</div>
-                    <div className="
-                        block
-                        w-[20px]
-                        h-[20px]
-                        absolute
-                        top-1/2
-                        -translate-y-1/2
-                        right-[10px]
-                    ">
-                        <ChevronRight color="#111111"/>
-                    </div>
-                </Link>
             </div>
             <div className={`
                 block
@@ -414,7 +471,7 @@ const AddPlace = () => {
                         </button>
                         <input
                             type="text"
-                            placeholder="Search"
+                            placeholder={reverseGeocoderLoading ? "Loading Address..." : "Search"}
                             ref={searchInputRef}
                             onChange={onSearchInputChange}
                             className="
@@ -514,7 +571,7 @@ const AddPlace = () => {
                     text-[14px]
                     2xs:text-[16px]
                     ${(searchInput && coords) ? "bg-[#111111] active:bg-[#444444]" : "bg-[#888888]"}
-                `}>Done</button>
+                `} onClick={doneSelectLocation}>Done</button>
             </div>
         </div>
     )

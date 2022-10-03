@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useLocation, Link, useNavigate } from "react-router-dom"
+import axios from "axios"
 import useStore from "../store"
 import { useUserStore } from "../store"
 import Header from "../components/Header"
@@ -12,13 +13,71 @@ const SavedPlaces = () => {
     const navigate = useNavigate()
     const location = useLocation()
     const locationQueries = useStore(state => state.locationQueries)
+    const newPlaceForm = useStore(state => state.newPlaceForm)
+    const setNewPlaceForm = useStore(state => state.setNewPlaceForm)
+    const resetNewPlaceForm = useStore(state => state.resetNewPlaceForm)
     const signedIn = useUserStore(state => state.signedIn)
-    const [ newPlace ] = useState({
-        loading: false,
-        error: null,
-        data: null
-    })
+    const authToken = useUserStore(state => state.authToken)
+    const resetUserData = useUserStore(state => state.reset)
+    
+    const addPlace = async () => {
+        if (!authToken || newPlaceForm.loading || !newPlaceForm.title || !newPlaceForm.address || !newPlaceForm.coords) return
 
+        setNewPlaceForm({
+            ...newPlaceForm,
+            loading: true,
+            error: null
+        })
+
+        try {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/v1/add-saved-place`, {
+                title: newPlaceForm.title,
+                address: newPlaceForm.address,
+                coords: newPlaceForm.coords
+            }, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+
+            if (res.status === 200 && res.data){
+                setNewPlaceForm({
+                    ...newPlaceForm,
+                    loading: false,
+                    error: null
+                })
+                resetNewPlaceForm()
+
+                if (window.location.pathname === "/saved-places" && window.location.search.includes("add")){
+                    window.history.back()
+                }
+            }
+            else {
+                setNewPlaceForm({
+                    ...newPlaceForm,
+                    loading: false,
+                    error: {
+                        message: "Something went wrong, please try again."
+                    }
+                })
+            }
+        }
+        catch (err){
+            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                // alert user that they have to reauthenticate and sign out
+                alert(err.response.data.message)
+                return resetUserData()
+            }
+            setNewPlaceForm({
+                ...newPlaceForm,
+                loading: false,
+                error: {
+                    message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
+                }
+            })
+        }
+    }
+    
     const AddPlaceLink = () => {
         
         return (
@@ -48,17 +107,16 @@ const SavedPlaces = () => {
                 h-[50px]
                 float-right
                 p-[12px]
-                ${!newPlace.loading ? "active:bg-[#eeeeee]" : ""}
+                ${(!newPlaceForm.loading && newPlaceForm.title && newPlaceForm.address && newPlaceForm.coords) ? "active:bg-[#eeeeee]" : ""}
                 translate-x-[12px]
-                active:bg-[#eeeeee]
-            `}>
+            `} onClick={addPlace}>
                 {
-                    newPlace.loading ?
+                    newPlaceForm.loading ?
                     <img src={Spinner} alt="loading" className="
                         block
                         w-full
                     "/> :
-                    <Check color="#8a2be2"/>
+                    <Check color={(newPlaceForm.title && newPlaceForm.address && newPlaceForm.coords) ? "#8a2be2" : "#dddddd"}/>
                 }
             </button>
         )
