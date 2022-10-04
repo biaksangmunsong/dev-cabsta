@@ -559,7 +559,8 @@ const AddPlace = () => {
                     block
                     w-[94%]
                     max-w-[500px]
-                    h-[55px]
+                    h-[50px]
+                    2xs:h-[55px]
                     absolute
                     z-[10]
                     bottom-[50px]
