@@ -23,7 +23,7 @@ const Header = ({heading, RightCTA}) => {
         ">
             <div className="
                 block
-                w-[90%]
+                w-[94%]
                 max-w-[1000px]
                 mx-auto
                 text-left

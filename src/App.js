@@ -36,6 +36,7 @@ const App = () => {
     const setUserDataIsUpToDate = useStore(state => state.setUserDataIsUpToDate)
     const resetProfileForm = useStore(state => state.resetProfileForm)
     const resetNewPlaceForm = useStore(state => state.resetNewPlaceForm)
+    const resetSavedPlaces = useStore(state => state.resetSavedPlaces)
     const authToken = useUserStore(state => state.authToken)
     const updateUserData = useUserStore(state => state.update)
     const resetUserData = useUserStore(state => state.reset)
@@ -46,7 +47,11 @@ const App = () => {
 		const query = location.search.substring(1)
 		if (query){
 			const queries = query.split("&")
-			setLocationQueries(queries)
+            const keys = []
+            queries.forEach(q => {
+                keys.push(q.split("=")[0])
+            })
+			setLocationQueries(keys)
 		}
 		else {
 			setLocationQueries([])
@@ -156,8 +161,9 @@ const App = () => {
             resetProfileForm()
             resetNewPlaceForm()
             clearInputStore()
+            resetSavedPlaces()
         }
-    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore])
+    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces])
     
     return (
         <div className={`
