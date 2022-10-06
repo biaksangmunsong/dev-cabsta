@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { Haptics, ImpactStyle } from "@capacitor/haptics"
 import { Link, useNavigate } from "react-router-dom"
 import useStore from "../store"
-import { useUserStore, useHints } from "../store"
+import { useUserStore } from "../store"
 import axios from "axios"
 import TextareaAutosize from "react-textarea-autosize"
 import getAddress from "../lib/getAddress"
@@ -13,6 +13,7 @@ import StarIcon from "./icons/Star"
 import SadFace from "./icons/SadFace"
 import StarPin from "../images/star-pin.png"
 import Spinner from "../images/spinner.gif"
+import "../styles/places_autocomplete.css"
 
 const EditPlace = () => {
 
@@ -23,8 +24,6 @@ const EditPlace = () => {
     const staticData = useStore(state => state.staticData)
     const googleMapsScriptLoaded = useStore(state => state.googleMapsScriptLoaded)
     const resetNewPlaceForm = useStore(state => state.resetNewPlaceForm)
-    const newPlaceLocationSelectorHint = useHints(state => state.newPlaceLocationSelector)
-    const hideNewPlaceLocationSelectorHint = useHints(state => state.hideNewPlaceLocationSelector)
     const authToken = useUserStore(state => state.authToken)
     const resetUserData = useUserStore(state => state.reset)
     const [ prepopulation, setPrepopulation ] = useState({
@@ -634,49 +633,6 @@ const EditPlace = () => {
                                 }
                             </div>
                         </div>
-                        {
-                            newPlaceLocationSelectorHint === "show" ?
-                            <div className="
-                                block
-                                w-full
-                                py-[6px]
-                                bg-[rgba(255,255,255,.9)]
-                                absolute
-                                z-[9]
-                                top-[49px]
-                                left-1/2
-                                -translate-x-1/2
-                                border-b
-                                border-solid
-                                border-[#dddddd]
-                            ">
-                                <div className="
-                                    block
-                                    w-[94%]
-                                    max-w-[1000px]
-                                    mx-auto
-                                ">
-                                    <p className="
-                                        block
-                                        w-full
-                                        font-defaultRegular
-                                        text-left
-                                        text-[#888888]
-                                        text-[10px]
-                                        2xs:text-[12px]
-                                        mb-[4px]
-                                    "><b className="font-defaultBold">Hint:</b> {coords ? <span>Drag the &#9733; pin to change location.</span> : <span>Tap on map to drop a pin on location, and drag the pin to change location.</span>}</p>
-                                    <button className="
-                                        inline-block
-                                        font-defaultBold
-                                        text-[#8a2be2]
-                                        text-[12px]
-                                        2xs:text-[14px]
-                                        text-center
-                                    " onClick={hideNewPlaceLocationSelectorHint}>Got it</button>
-                                </div>
-                            </div> : ""
-                        }
                         <div className="
                             block
                             w-full

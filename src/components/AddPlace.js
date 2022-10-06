@@ -10,6 +10,7 @@ import LeftArrow from "./icons/LeftArrow"
 import XIcon from "./icons/XIcon"
 import StarIcon from "./icons/Star"
 import StarPin from "../images/star-pin.png"
+import "../styles/places_autocomplete.css"
 
 const AddPlace = () => {
 
@@ -532,7 +533,7 @@ const AddPlace = () => {
                                 text-[10px]
                                 2xs:text-[12px]
                                 mb-[4px]
-                            "><b className="font-defaultBold">Hint:</b> {coords ? <span>Drag the &#9733; pin to change location.</span> : <span>Tap on map to drop a pin on location, and drag the pin to change location.</span>}</p>
+                            "><b className="font-defaultBold">Hint:</b> Tap on map to drop a pin on location, and drag the &#9733; pin to precisely set a location.</p>
                             <button className="
                                 inline-block
                                 font-defaultBold

@@ -406,37 +406,40 @@ const Checkout = ({checkOut, setCheckOut}) => {
                             leading-[16px]
                             mb-[4px]
                         ">Name</div>
-                        <TextareaAutosize
-                            placeholder="Enter Your Name"
-                            name="name"
-                            value={name.value}
-                            onChange={onNameInputChange}
-                            minRows={1}
-                            maxRows={10}
-                            className="
-                                block
-                                w-full
-                                min-h-[55px]
-                                2xs:min-h-[60px]
-                                bg-[#eeeeee]
-                                border
-                                border-solid
-                                border-[#cccccc]
-                                font-defaultBold
-                                text-left
-                                text-[#111111]
-                                text-[14px]
-                                2xs:text-[16px]
-                                leading-[23px]
-                                2xs:leading-[24px]
-                                pr-[30px]
-                                pl-[10px]
-                                py-[16px]
-                                2xs:py-[18px]
-                                rounded-[4px]
-                                resize-none
-                            "
-                        />
+                        {
+                            location.pathname === "/checkout" ?
+                            <TextareaAutosize
+                                placeholder="Enter Your Name"
+                                name="name"
+                                value={name.value}
+                                onChange={onNameInputChange}
+                                minRows={1}
+                                maxRows={10}
+                                className="
+                                    block
+                                    w-full
+                                    min-h-[55px]
+                                    2xs:min-h-[60px]
+                                    bg-[#eeeeee]
+                                    border
+                                    border-solid
+                                    border-[#cccccc]
+                                    font-defaultBold
+                                    text-left
+                                    text-[#111111]
+                                    text-[14px]
+                                    2xs:text-[16px]
+                                    leading-[23px]
+                                    2xs:leading-[24px]
+                                    pr-[30px]
+                                    pl-[10px]
+                                    py-[16px]
+                                    2xs:py-[18px]
+                                    rounded-[4px]
+                                    resize-none
+                                "
+                            /> : ""
+                        }
                         <div className="
                             block
                             w-[30px]
