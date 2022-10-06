@@ -513,7 +513,7 @@ const EditPlace = () => {
                                     left-0
                                     bg-[#111111]
                                     p-[6px]
-                                    rounded-[50%]
+                                    rounded-[4px]
                                 ">
                                     <StarIcon color="#ffffff"/>
                                 </div>

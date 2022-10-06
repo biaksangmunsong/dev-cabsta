@@ -380,7 +380,7 @@ const AddPlace = () => {
                             left-0
                             bg-[#111111]
                             p-[6px]
-                            rounded-[50%]
+                            rounded-[4px]
                         ">
                             <StarIcon color="#ffffff"/>
                         </div>
@@ -532,7 +532,7 @@ const AddPlace = () => {
                                 text-[10px]
                                 2xs:text-[12px]
                                 mb-[4px]
-                            "><b className="font-defaultBold">Hint:</b> Tap on map to drop a pin on location, and drag the pin to change location.</p>
+                            "><b className="font-defaultBold">Hint:</b> {coords ? <span>Drag the &#9733; pin to change location.</span> : <span>Tap on map to drop a pin on location, and drag the pin to change location.</span>}</p>
                             <button className="
                                 inline-block
                                 font-defaultBold

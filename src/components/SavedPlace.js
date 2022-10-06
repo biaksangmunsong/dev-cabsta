@@ -127,10 +127,10 @@ const SavedPlace = ({data}) => {
                         align-middle
                         w-[20px]
                         h-[20px]
-                        mr-[5px]
+                        mr-[6px]
                         bg-[#111111]
-                        rounded-[50%]
-                        p-[4px]
+                        rounded-[2px]
+                        p-[3px]
                     ">
                         <StarIcon color="#ffffff"/>
                     </span>
