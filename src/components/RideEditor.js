@@ -496,16 +496,91 @@ const Editor = () => {
                 mapsRef.current = new window.google.maps.Map(mapsContainerRef.current, mapOptions)
             }
 
-            if (pickupLocation && !pickupMarker.current && mapsRef.current){
-                createPickupMarker()
-                if (activeInput === "pickup"){
-                    mapsRef.current.setCenter(pickupLocation.coords)
+            const query = window.location.search
+            const queries = query.split("&")
+            navigate("/set-location", {replace: true})
+
+            if (
+                query.startsWith("?pickup&lat=") &&
+                query.includes("&lat=") &&
+                query.includes("&lng=") &&
+                query.includes("&address=")
+            ){
+                // get data from query
+                let lat, lng, address
+                queries.forEach(q => {
+                    if (q.startsWith("lat=") && !lat){
+                        lat = Number(q.split("=")[1]) || 0
+                    }
+                    if (q.startsWith("lng=") && !lng){
+                        lng = Number(q.split("=")[1]) || 0
+                    }
+                    if (q.startsWith("address=") && !address){
+                        address = decodeURI(q.split("=")[1])
+                    }
+                })
+                
+                if (pickupInputRef.current){
+                    pickupInputRef.current.value = address
+                    setPickupLocationInput(address)
+                    const pl = {
+                        inputValue: address,
+                        coords: {lat,lng},
+                        formatted_address: address
+                    }
+                    setPickupLocation(pl)
+                    pickupLocationRef.current = pl
+                    setActiveInput("pickup")
                 }
             }
-            if (destination && !destinationMarker.current && mapsRef.current){
-                createDestinationMarker()
-                if (activeInput === "destination"){
-                    mapsRef.current.setCenter(destination.coords)
+            else {
+                if (pickupLocation && !pickupMarker.current && mapsRef.current){
+                    createPickupMarker()
+                    if (activeInput === "pickup"){
+                        mapsRef.current.setCenter(pickupLocation.coords)
+                    }
+                }
+            }
+
+            if (
+                query.startsWith("?destination&lat=") &&
+                query.includes("&lat=") &&
+                query.includes("&lng=") &&
+                query.includes("&address=")
+            ){
+                // get data from query
+                let lat, lng, address
+                queries.forEach(q => {
+                    if (q.startsWith("lat=") && !lat){
+                        lat = Number(q.split("=")[1]) || 0
+                    }
+                    if (q.startsWith("lng=") && !lng){
+                        lng = Number(q.split("=")[1]) || 0
+                    }
+                    if (q.startsWith("address=") && !address){
+                        address = decodeURI(q.split("=")[1])
+                    }
+                })
+                
+                if (destinationInputRef.current){
+                    destinationInputRef.current.value = address
+                    setDestinationInput(address)
+                    const ds = {
+                        inputValue: address,
+                        coords: {lat,lng},
+                        formatted_address: address
+                    }
+                    setDestination(ds)
+                    destinationRef.current = ds
+                    setActiveInput("destination")
+                }
+            }
+            else {
+                if (destination && !destinationMarker.current && mapsRef.current && !window.location.search.includes("destination=")){
+                    createDestinationMarker()
+                    if (activeInput === "destination"){
+                        mapsRef.current.setCenter(destination.coords)
+                    }
                 }
             }
         }
@@ -519,42 +594,56 @@ const Editor = () => {
         createPickupMarker,
         destination,
         createDestinationMarker,
-        activeInput
+        activeInput,
+        setPickupLocation,
+        setDestination,
+        navigate
     ])
-    
-    useEffect(() => {
-        if (activeInput === "pickup" && pickupLocation && mapsRef.current){
-            // put marker at location
-            if (!pickupMarker.current){
-                createPickupMarker()
-            }
-            else {
-                pickupMarker.current.setPosition(pickupLocation.coords)
-            }
-        }
-    }, [pickupLocation, activeInput, setPickupLocation, createPickupMarker])
-    
-    useEffect(() => {
-        if (activeInput === "destination" && destination && mapsRef.current){
-            // put marker at location
-            if (!destinationMarker.current){
-                createDestinationMarker()
-            }
-            else {
-                destinationMarker.current.setPosition(destination.coords)
-            }
-        }
-    }, [destination, activeInput, setDestination, createDestinationMarker])
 
     useEffect(() => {
-        // set input value when history changes
-        if (pickupLocationRef.current && pickupInputRef.current){
-            pickupInputRef.current.value = pickupLocationRef.current.inputValue
-            setPickupLocationInput(pickupLocationRef.current.inputValue)
+        if (activeInput === "pickup" && pickupLocationRef.current){
+            if (mapsRef.current){
+                mapsRef.current.setCenter(pickupLocationRef.current.coords)
+            }
         }
-        if (destinationRef.current && destinationInputRef.current){
-            destinationInputRef.current.value = destinationRef.current.inputValue
-            setDestinationInput(destinationRef.current.inputValue)
+        else if (activeInput === "destination" && destinationRef.current){
+            if (mapsRef.current){
+                mapsRef.current.setCenter(destinationRef.current.coords)
+            }
+        }
+    }, [activeInput])
+    
+    useEffect(() => {
+        // set input value when history changes
+        const query = window.location.search
+        if (!(
+            query.startsWith("?pickup&lat=") &&
+            query.includes("&lat=") &&
+            query.includes("&lng=") &&
+            query.includes("&address=")
+        )){
+            if (query){
+                navigate("/set-location", {replace: true})
+            }
+            if (pickupLocationRef.current && pickupInputRef.current){
+                pickupInputRef.current.value = pickupLocationRef.current.inputValue
+                setPickupLocationInput(pickupLocationRef.current.inputValue)
+            }
+        }
+
+        if (!(
+            query.startsWith("?destination&lat=") &&
+            query.includes("&lat=") &&
+            query.includes("&lng=") &&
+            query.includes("&address=")
+        )){
+            if (query){
+                navigate("/set-location", {replace: true})
+            }
+            if (destinationRef.current && destinationInputRef.current){
+                destinationInputRef.current.value = destinationRef.current.inputValue
+                setDestinationInput(destinationRef.current.inputValue)
+            }
         }
 
         // set scroll position of scrollable area to top
@@ -572,7 +661,7 @@ const Editor = () => {
             }
         }
         asyncFn()
-    }, [location.pathname])
+    }, [location.pathname, navigate])
 
     useEffect(() => {
         if (location.pathname === "/checkout"){

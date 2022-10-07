@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useLocation, Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import useStore from "../store"
@@ -9,6 +9,10 @@ import EditPlace from "../components/EditPlace"
 import SavedPlace from "../components/SavedPlace"
 import Check from "../components/icons/Check"
 import SadFace from "../components/icons/SadFace"
+import EditIcon from "../components/icons/Edit"
+import DeleteIcon from "../components/icons/Delete"
+import XIcon from "../components/icons/XIcon"
+import StarIcon from "../components/icons/Star"
 import Spinner from "../images/spinner.gif"
 
 const SavedPlaces = () => {
@@ -24,6 +28,7 @@ const SavedPlaces = () => {
     const signedIn = useUserStore(state => state.signedIn)
     const authToken = useUserStore(state => state.authToken)
     const resetUserData = useUserStore(state => state.reset)
+    const [ prompt, setPrompt ] = useState()
     const canLoadMore = useRef(true)
     
     const addPlace = async () => {
@@ -317,6 +322,53 @@ const SavedPlaces = () => {
             }
         }
     }
+
+    const deletePlace = async placeData => {
+        if (!authToken || placeData.deleted) return
+        
+        if (!window.confirm("Are you sure you want to delete this place?")) return
+        
+        window.history.back()
+        
+        // mark place as deleted
+        const newList = []
+        savedPlaces.data.forEach(place => {
+            if (place._id === placeData._id){
+                newList.push({
+                    ...place,
+                    deleted: true
+                })
+            }
+            else {
+                newList.push(place)
+            }
+        })
+        setSavedPlaces({
+            data: newList
+        })
+        
+        try {
+            await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/v1/delete-saved-place`, {
+                data: {
+                    placeId: placeData._id
+                },
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+        }
+        catch (err){
+            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                // alert user that they have to reauthenticate and sign out
+                alert(err.response.data.message)
+                return resetUserData()
+            }
+        }
+    }
+    
+    const onPromptBtnClick = to => {
+        navigate(to, {replace: true})
+    }
     
     useEffect(() => {
         if (signedIn === "no"){
@@ -340,6 +392,23 @@ const SavedPlaces = () => {
             getPlaces()
         }
     }, [getPlaces, savedPlaces.init])
+
+    useEffect(() => {
+        if (savedPlaces.data.length < 1) return
+
+        if (location.pathname === "/saved-places" && locationQueries.includes("prompt")){
+            const placeId = window.location.search.split("?").join("").split("=")[1]
+            if (!placeId) return
+            
+            // set prompt data
+            const place = savedPlaces.data.filter(sp => sp._id === placeId)
+            if (!place[0]) return
+            setPrompt(place[0])
+        }
+        else {
+            setPrompt(null)
+        }
+    }, [location, locationQueries, savedPlaces.data])
     
     return (
         <div className={`
@@ -375,6 +444,262 @@ const SavedPlaces = () => {
                 (locationQueries.includes("edit") && !locationQueries.includes("add")) ?
                 <EditPlace/> : ""
             }
+            <div className={`
+                flex
+                w-full
+                h-full
+                absolute
+                z-[30]
+                ${prompt ? "top-0" : "top-[120%]"}
+                left-0
+                bg-[rgba(0,0,0,.8)]
+                overflow-auto
+                py-[60px]
+            `}>
+                <div className={`
+                    block
+                    w-[40px]
+                    h-[40px]
+                    absolute
+                    z-[10]
+                    top-[10px]
+                    right-[3%]
+                    p-[11px]
+                    active:bg-[rgba(255,255,255,.1)]
+                    ${prompt ? "scale-[1]" : "scale-0"}
+                    duration-[.2s]
+                    ease-in-out
+                `} onClick={() => window.history.back()}>
+                    <XIcon color="#ffffff"/>
+                </div>
+                <div className={`
+                    block
+                    w-[94%]
+                    max-w-[500px]
+                    m-auto
+                    bg-[#ffffff]
+                    rounded-[10px]
+                    overflow-hidden
+                    border-[4px]
+                    border-solid
+                    border-[#ffffff]
+                    relative
+                    z-[9]
+                    ${prompt ? "scale-[1]" : "scale-0"}
+                    duration-[.2s]
+                    ease-in-out
+                `}>
+                    <div className="
+                        block
+                        w-full
+                        p-[15px]
+                        pb-[30px]
+                    ">
+                        <h2 className="
+                            block
+                            w-full
+                            font-defaultRegular
+                            text-left
+                            text-[#111111]
+                            text-[14px]
+                            2xs:text-[16px]
+                            leading-[20px]
+                            mb-[8px]
+                        ">
+                            <span className="
+                                inline-block
+                                align-middle
+                                w-[20px]
+                                h-[20px]
+                                mr-[6px]
+                                bg-[#111111]
+                                rounded-[2px]
+                                p-[3px]
+                            ">
+                                <StarIcon color="#ffffff"/>
+                            </span>
+                            <span className="inline-block align-middle">{prompt ? prompt.title : ""}</span>
+                        </h2>
+                        <h3 className="
+                            block
+                            w-full
+                            font-defaultRegular
+                            text-left
+                            text-[#8a2be2]
+                            text-[11px]
+                            2xs:text-[13px]
+                            leading-[18px]
+                        ">{prompt ? prompt.address : ""}</h3>
+                    </div>
+                    <div className="
+                        block
+                        w-full
+                        bg-[#dddddd]
+                        rounded-t-[10px]
+                        rounded-b-[8px]
+                    ">
+                        <div onClick={() => onPromptBtnClick(prompt ? `/set-location?pickup&lat=${prompt.coords.lat}&lng=${prompt.coords.lng}&address=${encodeURI(prompt.address)}` : "/set-location")} className="
+                            block
+                            w-full
+                            font-defaultBold
+                            text-left
+                            text-[#444444]
+                            text-[12px]
+                            2xs:text-[14px]
+                            leading-[50px]
+                            px-[15px]
+                            border-[8px]
+                            border-b-[4px]
+                            border-solid
+                            border-[#dddddd]
+                            rounded-[16px]
+                            bg-[#ffffff]
+                            active:bg-[#eeeeee]
+                            capitalize
+                            whitespace-nowrap
+                            overflow-hidden
+                            text-ellipsis
+                        ">
+                            <span className="
+                                inline-block
+                                align-middle
+                                w-[10px]
+                                h-[10px]
+                                mr-[10px]
+                                bg-[#111111]
+                                p-[6px]
+                                rounded-[50%]
+                            "></span>
+                            <span className="
+                                inline-block
+                                align-middle
+                            ">Set as pickup location</span>
+                        </div>
+                        <div onClick={() => onPromptBtnClick(prompt ? `/set-location?destination&lat=${prompt.coords.lat}&lng=${prompt.coords.lng}&address=${encodeURI(prompt.address)}` : "/set-location")} className="
+                            block
+                            w-full
+                            font-defaultBold
+                            text-left
+                            text-[#444444]
+                            text-[12px]
+                            2xs:text-[14px]
+                            leading-[50px]
+                            px-[15px]
+                            border-[8px]
+                            border-t-[4px]
+                            border-b-[4px]
+                            border-solid
+                            border-[#dddddd]
+                            rounded-[16px]
+                            bg-[#ffffff]
+                            active:bg-[#eeeeee]
+                            capitalize
+                            whitespace-nowrap
+                            overflow-hidden
+                            text-ellipsis
+                        ">
+                            <span className="
+                                inline-block
+                                align-middle
+                                w-[10px]
+                                h-[10px]
+                                mr-[10px]
+                                bg-[#111111]
+                                p-[6px]
+                            "></span>
+                            <span className="
+                                inline-block
+                                align-middle
+                            ">Set as destination</span>
+                        </div>
+                        <div onClick={() => onPromptBtnClick(`/saved-places?edit=${prompt ? prompt._id : ""}`)} className="
+                            inline-block
+                            align-middle
+                            w-1/2
+                            font-defaultBold
+                            text-left
+                            text-[#444444]
+                            text-[12px]
+                            2xs:text-[14px]
+                            leading-[50px]
+                            px-[15px]
+                            border-[8px]
+                            border-t-[4px]
+                            border-r-[4px]
+                            border-solid
+                            border-[#dddddd]
+                            rounded-[16px]
+                            bg-[#ffffff]
+                            active:bg-[#eeeeee]
+                            capitalize
+                            whitespace-nowrap
+                            overflow-hidden
+                            text-ellipsis
+                        ">
+                            <span className="
+                                inline-block
+                                align-middle
+                                w-[20px]
+                                h-[20px]
+                                mr-[10px]
+                            ">
+                                <EditIcon color="#111111"/>
+                            </span>
+                            <span className="
+                                inline-block
+                                align-middle
+                            ">Edit</span>
+                        </div>
+                        <div onClick={prompt ? () => deletePlace(prompt) : null} className="
+                            inline-block
+                            align-middle
+                            w-1/2
+                            font-defaultBold
+                            text-left
+                            text-[#444444]
+                            text-[12px]
+                            2xs:text-[14px]
+                            leading-[50px]
+                            px-[15px]
+                            border-[8px]
+                            border-t-[4px]
+                            border-l-[4px]
+                            border-solid
+                            border-[#dddddd]
+                            rounded-[16px]
+                            bg-[#ffffff]
+                            active:bg-[#eeeeee]
+                            capitalize
+                            whitespace-nowrap
+                            overflow-hidden
+                            text-ellipsis
+                        ">
+                            <span className="
+                                inline-block
+                                align-middle
+                                w-[20px]
+                                h-[20px]
+                                mr-[10px]
+                            ">
+                                <DeleteIcon color="#111111"/>
+                            </span>
+                            <span className="
+                                inline-block
+                                align-middle
+                            ">Delete</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="
+                    block
+                    w-full
+                    h-full
+                    absolute
+                    z-[1]
+                    top-0
+                    left-0
+                " onClick={() => window.history.back()}></div>
+            </div>
             <div className="
                 block
                 w-full
@@ -388,7 +713,11 @@ const SavedPlaces = () => {
                     {
                         savedPlaces.data.map(place => {
                             return (
-                                <SavedPlace key={place._id} data={place}/>
+                                <SavedPlace
+                                    key={place._id}
+                                    data={place}
+                                    setPrompt={setPrompt}
+                                />
                             )
                         })
                     }

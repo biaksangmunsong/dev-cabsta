@@ -1,56 +1,7 @@
-// import { Link } from "react-router-dom"
-// import axios from "axios"
-// import useStore from "../store"
-// import { useUserStore } from "../store"
+import { Link } from "react-router-dom"
 import StarIcon from "./icons/Star"
 
 const SavedPlace = ({data}) => {
-    
-    // const savedPlaces = useStore(state => state.savedPlaces)
-    // const setSavedPlaces = useStore(state => state.setSavedPlaces)
-    // const authToken = useUserStore(state => state.authToken)
-    // const resetUserData = useUserStore(state => state.reset)
-    
-    // const deletePlace = async () => {
-    //     if (!authToken || data.deleted) return
-        
-    //     if (!window.confirm("Are you sure you want to delete this place?")) return
-
-    //     // mark place as deleted
-    //     const newList = []
-    //     savedPlaces.data.forEach(place => {
-    //         if (place._id === data._id){
-    //             newList.push({
-    //                 ...place,
-    //                 deleted: true
-    //             })
-    //         }
-    //         else {
-    //             newList.push(place)
-    //         }
-    //     })
-    //     setSavedPlaces({
-    //         data: newList
-    //     })
-        
-    //     try {
-    //         await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/v1/delete-saved-place`, {
-    //             data: {
-    //                 placeId: data._id
-    //             },
-    //             headers: {
-    //                 Authorization: `Bearer ${authToken}`
-    //             }
-    //         })
-    //     }
-    //     catch (err){
-    //         if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
-    //             // alert user that they have to reauthenticate and sign out
-    //             alert(err.response.data.message)
-    //             return resetUserData()
-    //         }
-    //     }
-    // }
     
     return (
         <div className="
@@ -63,23 +14,25 @@ const SavedPlace = ({data}) => {
             last:border-none
             border-solid
             border-[#dddddd]
-            py-[20px]
-            active:bg-[#eeeeee]
         ">
-            <div className={`
+            <Link to={`/saved-places?prompt=${data._id}`} className={`
                 block
                 w-[94%]
                 mx-auto
                 relative
                 pr-[30px]
-                overflow-visible
+                ${data.deleted ? "max-h-0 py-0" : "max-h-[500px] py-[20px]"}
+                overflow-hidden
+                duration-[.1s]
+                ease-in-out
+                active:bg-[#eeeeee]
             `}>
                 <button type="button" className="
                     block
                     w-[30px]
                     h-[30px]
                     absolute
-                    top-0
+                    top-[15px]
                     right-0
                     active:bg-[#dddddd]
                 ">
@@ -146,45 +99,23 @@ const SavedPlace = ({data}) => {
                     2xs:text-[13px]
                     leading-[18px]
                 ">{data.address}</h3>
-                {/* <Link to={`/saved-places?edit=${data._id}`} className="
-                    inline-block
-                    align-middle
-                    bg-[#eeeeee]
-                    font-defaultBold
-                    text-left
-                    text-[#444444]
-                    text-[10px]
-                    2xs:text-[12px]
-                    leading-[25px]
-                    px-[10px]
-                    mr-[5px]
-                ">Set as pickup location</Link>
-                <Link to={`/saved-places?edit=${data._id}`} className="
-                    inline-block
-                    align-middle
-                    bg-[#eeeeee]
-                    font-defaultBold
-                    text-left
-                    text-[#444444]
-                    text-[10px]
-                    2xs:text-[12px]
-                    leading-[25px]
-                    px-[10px]
-                    mr-[5px]
-                ">Edit</Link>
-                <button type="button" onClick={deletePlace} className="
-                    inline-block
-                    align-middle
-                    h-[25px]
-                    bg-[#cc0000]
-                    font-defaultBold
-                    text-left
-                    text-[#ffffff]
-                    text-[10px]
-                    2xs:text-[12px]
-                    px-[10px]
-                ">Delete</button> */}
-            </div>
+            </Link>
+            <div className={`
+                block
+                w-[94%]
+                max-w-[1000px]
+                mx-auto
+                rounded-[10px]
+                font-defaultBold
+                text-left
+                text-[#cccccc]
+                text-[14px]
+                2xs:text-[16px]
+                ${!data.deleted ? "max-h-0 py-0" : "max-h-[500px] py-[20px]"}
+                overflow-hidden
+                duration-[.1s]
+                ease-in-out
+            `}>Deleted</div>
         </div>
     )
 
