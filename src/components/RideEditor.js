@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Link, useNavigate, useLocation } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
+import axios from "axios"
 import useStore from "../store"
-import { useInputStore } from "../store"
+import { useUserStore, useInputStore } from "../store"
 import { Geolocation } from "@capacitor/geolocation"
 import XIcon from "./icons/XIcon"
 import "../styles/places_autocomplete.css"
@@ -10,11 +11,14 @@ import Spinner from "../images/spinner.gif"
 import DestinationPin from "../images/destination-pin.png"
 import { Haptics } from "@capacitor/haptics"
 import getAddress from "../lib/getAddress"
+import getDisplacementFromLatLonInKm from "../lib/getDisplacementFromLatLonInKm"
 import LongRightArrow from "./icons/LongRightArrow"
 import CrossHair from "./icons/CrossHair"
 import StarIcon from "./icons/Star"
 import VehicleSelector from "./VehicleSelector"
 import Checkout from "./Checkout"
+import SadFace from "./icons/SadFace"
+import Exclamation from "./icons/Exclamation"
 import Ripple from "../images/ripple.gif"
 
 const Editor = () => {
@@ -32,6 +36,9 @@ const Editor = () => {
     const viewport = useStore(state => state.viewport)
     const locationQueries = useStore(state => state.locationQueries)
     const savedPlaces = useStore(state => state.savedPlaces)
+    const setSavedPlaces = useStore(state => state.setSavedPlaces)
+    const authToken = useUserStore(state => state.authToken)
+    const resetUserData = useUserStore(state => state.reset)
     const [ pickupLocationInput, setPickupLocationInput ] = useState("")
     const [ destinationInput, setDestinationInput ] = useState("")
     const [ activeInput, setActiveInput ] = useState("pickup")
@@ -42,6 +49,7 @@ const Editor = () => {
         loading: false,
         error: null
     })
+    const [ locationPointsError, setLocationPointsError ] = useState("")
     const pickupInputRef = useRef(null)
     const pickupAutocomplete = useRef(null)
     const destinationInputRef = useRef(null)
@@ -57,18 +65,108 @@ const Editor = () => {
     const locationWatchId = useRef(null)
     const directionsRenderer = useRef(null)
     const directionsService = useRef(null)
-
+    const canLoadMoreSavedPlaces = useRef(true)
+    
     const startLocationWatch = useCallback(async () => {
         if (!locationWatchId.current && locationPermission === "granted"){
             const watchId = await Geolocation.watchPosition({enableHighAccuracy: true}, data => {
-                setUsersLocation({
-                    lat: data.coords.latitude,
-                    lng: data.coords.longitude
-                })
+                if (data.coords){
+                    setUsersLocation({
+                        lat: data.coords.latitude,
+                        lng: data.coords.longitude
+                    })
+                }
             })
             locationWatchId.current = watchId
         }
     }, [locationPermission])
+
+    const getPlaces = useCallback(async () => {
+        if (!authToken || !canLoadMoreSavedPlaces.current || savedPlaces.loading) return
+        
+        if (!savedPlaces.init){
+            setSavedPlaces({
+                init: true
+            })
+        }
+
+        setSavedPlaces({
+            loading: true,
+            error: null
+        })
+        canLoadMoreSavedPlaces.current = false
+        
+        try {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-saved-places?lastPlace=${savedPlaces.lastPlace}`, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+
+            if (res.status === 200 && res.data){
+                if (res.data.length >= 50){
+                    canLoadMoreSavedPlaces.current = true
+                }
+                setSavedPlaces({
+                    lastPlace: res.data.length ? res.data[res.data.length-1].lastModified : savedPlaces.lastPlace,
+                    loading: false,
+                    error: null,
+                    data: [
+                        ...savedPlaces.data,
+                        ...res.data
+                    ]
+                })
+            }
+            else {
+                setSavedPlaces({
+                    loading: false,
+                    error: {
+                        message: "Something went wrong, please try again."
+                    }
+                })
+            }
+        }
+        catch (err){
+            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                // alert user that they have to reauthenticate and sign out
+                alert(err.response.data.message)
+                return resetUserData()
+            }
+            setSavedPlaces({
+                loading: false,
+                error: {
+                    message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
+                }
+            })
+        }
+    }, [
+        authToken,
+        resetUserData,
+        savedPlaces.init,
+        savedPlaces.data,
+        savedPlaces.lastPlace,
+        savedPlaces.loading,
+        setSavedPlaces
+    ])
+    
+    const retryGettingPlaces = () => {
+        canLoadMoreSavedPlaces.current = true
+        getPlaces()
+    }
+
+    const onSavedPlacesScroll = e => {
+        const sh = e.target.scrollHeight
+        const ch = e.target.clientHeight
+        const st = e.target.scrollTop
+        const trigger = ch/3
+        const x = sh-(ch+trigger)
+        
+        if (sh > ch){
+            if (x <= st){
+                getPlaces()
+            }
+        }
+    }
     
     const onInputFocus = e => {
         setActiveInput(e.target.name)
@@ -238,16 +336,25 @@ const Editor = () => {
         }
     }
 
+    const onAddPlaceBtnClick = () => {
+        if (window.location.search.includes("expand-saved-places")){
+            window.history.back()
+        }
+        setTimeout(() => {
+            navigate("/saved-places?add")
+        }, 10)
+    }
+    
     const selectSavedPlace = place => {
         if (activeInput === "pickup"){
             if (pickupInputRef.current){
-                pickupInputRef.current.value = place.formatted_address
-                setPickupLocationInput(place.formatted_address)
+                pickupInputRef.current.value = place.address
+                setPickupLocationInput(place.address)
             }
             setPickupLocation({
-                inputValue: place.formatted_address,
+                inputValue: place.address,
                 coords: place.coords,
-                formatted_address: place.formatted_address
+                formatted_address: place.address
             })
             if (mapsRef.current){
                 mapsRef.current.setCenter(place.coords)
@@ -257,13 +364,13 @@ const Editor = () => {
         }
         else if (activeInput === "destination"){
             if (destinationInputRef.current){
-                destinationInputRef.current.value = place.formatted_address
-                setDestinationInput(place.formatted_address)
+                destinationInputRef.current.value = place.address
+                setDestinationInput(place.address)
             }
             setDestination({
-                inputValue: place.formatted_address,
+                inputValue: place.address,
                 coords: place.coords,
-                formatted_address: place.formatted_address
+                formatted_address: place.address
             })
             if (mapsRef.current){
                 mapsRef.current.setCenter(place.coords)
@@ -274,7 +381,7 @@ const Editor = () => {
     }
 
     const chooseVehicle = async () => {
-        if (pickupLocation && destination && mapsRef.current){
+        if (pickupLocation && destination && mapsRef.current && !locationPointsError){
             if (locationQueries.includes("expand-saved-places")){
                 window.history.back()
                 setTimeout(() => {
@@ -456,6 +563,12 @@ const Editor = () => {
             setExpandSavedPlaces(false)
         }
     }, [locationQueries])
+
+    useEffect(() => {
+        if (!savedPlaces.init && locationQueries.includes("expand-saved-places")){
+            getPlaces()
+        }
+    }, [getPlaces, savedPlaces.init, locationQueries])
     
     useEffect(() => {
         if (googleMapsScriptLoaded && pickupInputRef.current && destinationInputRef.current){
@@ -622,7 +735,7 @@ const Editor = () => {
             query.includes("&lng=") &&
             query.includes("&address=")
         )){
-            if (query){
+            if (query && !query.includes("expand-menu")){
                 navigate("/set-location", {replace: true})
             }
             if (pickupLocationRef.current && pickupInputRef.current){
@@ -637,7 +750,7 @@ const Editor = () => {
             query.includes("&lng=") &&
             query.includes("&address=")
         )){
-            if (query){
+            if (query && !query.includes("expand-menu")){
                 navigate("/set-location", {replace: true})
             }
             if (destinationRef.current && destinationInputRef.current){
@@ -726,6 +839,31 @@ const Editor = () => {
             }
         }
     }, [])
+
+    useEffect(() => {
+        if (pickupLocation && destination){
+            if (
+                pickupLocation.coords.lat === destination.coords.lat &&
+                pickupLocation.coords.lng === destination.coords.lng
+            ){
+                return setLocationPointsError("Pickup Location and Destination should not be the same.")
+            }
+            const displacementBetweenPoints = getDisplacementFromLatLonInKm(
+                pickupLocation.coords.lat,
+                pickupLocation.coords.lng,
+                destination.coords.lat,
+                destination.coords.lng
+            )
+            if (displacementBetweenPoints < 0.05){
+                return setLocationPointsError("Pickup Location and Destination are too close to each other.")
+            }
+            
+            setLocationPointsError("")
+        }
+        else {
+            setLocationPointsError("")
+        }
+    }, [pickupLocation, destination])
     
     return (
         <div className={`
@@ -988,7 +1126,7 @@ const Editor = () => {
                         text-left
                         pt-[120px]
                         duration-[.2s]
-                    `} ref={scrollableArea}>
+                    `} ref={scrollableArea} onScroll={onSavedPlacesScroll}>
                         {
                             !expandSavedPlaces ?
                             <div className="
@@ -1107,7 +1245,7 @@ const Editor = () => {
                                         leading-[20px]
                                         2xs:leading-[23px]
                                     ">Saved Places</div>
-                                    <Link to="/saved-places?add" className="
+                                    <button type="button" className="
                                         inline-block
                                         font-defaultRegular
                                         text-left
@@ -1119,7 +1257,7 @@ const Editor = () => {
                                         top-1/2
                                         -translate-y-1/2
                                         right-0
-                                    ">+ Add Place</Link>
+                                    " onClick={onAddPlaceBtnClick}>+ Add Place</button>
                                 </div>
                                 <div className="
                                     block
@@ -1130,11 +1268,11 @@ const Editor = () => {
                                     pt-[10px]
                                 ">
                                     {
-                                        (savedPlaces.data && !savedPlaces.loading) ?
+                                        savedPlaces.data ?
                                         <>
                                             {
                                                 savedPlaces.data.map(place => {
-                                                    return <div key={place.id} className="
+                                                    return <div key={place._id} className="
                                                         block
                                                         w-full
                                                         py-[15px]
@@ -1145,26 +1283,97 @@ const Editor = () => {
                                                             w-full
                                                             font-defaultRegular
                                                             text-left
-                                                            text-[16px]
-                                                            2xs:text-[18px]
+                                                            text-[14px]
+                                                            2xs:text-[16px]
                                                             text-[#8a2be2]
                                                             leading-[20px]
-                                                            mb-[6px]
-                                                        ">{place.name}</div>
+                                                            mb-[3px]
+                                                        ">{place.title}</div>
                                                         <div className="
                                                             block
                                                             w-full
                                                             font-defaultRegular
                                                             text-left
                                                             text-[12px]
-                                                            2xs:text-[14px]
                                                             text-[#aaaaaa]
                                                             leading-[18px]
-                                                        ">{place.formatted_address}</div>
+                                                            whitespace-nowrap
+                                                            overflow-hidden
+                                                            text-ellipsis
+                                                        ">{place.address}</div>
                                                     </div>
                                                 })
                                             }
                                         </> : ""
+                                    }
+                                    {
+                                        savedPlaces.loading ?
+                                        <div className="
+                                            block
+                                            w-full
+                                            py-[20px]
+                                        ">
+                                            <img src={Spinner} alt="" className="
+                                                block
+                                                w-[35px]
+                                                h-[35px]
+                                                mx-auto
+                                                mb-[5px]
+                                            "/>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultBold
+                                                text-[#111111]
+                                                text-[14px]
+                                                2xs:text-[16px]
+                                                text-center
+                                            ">Loading...</div>
+                                        </div> : ""
+                                    }
+                                    {
+                                        savedPlaces.error ?
+                                        <div className="
+                                            block
+                                            w-full
+                                            max-w-[300px]
+                                            mx-auto
+                                            py-[20px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[50px]
+                                                h-[50px]
+                                                mx-auto
+                                                mb-[10px]
+                                            ">
+                                                <SadFace/>
+                                            </div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultBold
+                                                text-[#111111]
+                                                text-[14px]
+                                                2xs:text-[16px]
+                                                text-center
+                                                mb-[20px]
+                                            ">{savedPlaces.error.message}</div>
+                                            <button type="button" className="
+                                                block
+                                                w-[120px]
+                                                h-[40px]
+                                                mx-auto
+                                                bg-[#8a2be2]
+                                                rounded-[6px]
+                                                font-defaultBold
+                                                text-[center]
+                                                text-[#ffffff]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                active:opacity-[.8]
+                                            " onClick={retryGettingPlaces}>Retry</button>
+                                        </div> : ""
                                     }
                                 </div>
                             </div>
@@ -1179,6 +1388,47 @@ const Editor = () => {
                     relative
                     z-[10]
                 " ref={mapsContainerRef}></div>
+                <div className={`
+                    block
+                    w-full
+                    absolute
+                    z-[19]
+                    ${(location.pathname === "/set-location" && locationPointsError) ? "bottom-[99px]" : "-bottom-[110px]"}
+                    left-0
+                    bg-[rgba(255,255,255,.6)]
+                    py-[5px]
+                    border-t
+                    border-solid
+                    border-[#dddddd]
+                    duration-[.2s]
+                    ease-in-out
+                `}>
+                    <div className="
+                        block
+                        w-[94%]
+                        max-w-[1000px]
+                        mx-auto
+                        font-defaultRegular
+                        text-left
+                        text-[#111111]
+                        text-[12px]
+                        2xs:text-[12px]
+                    ">
+                        <span className="
+                            inline-block
+                            align-middle
+                            w-[18px]
+                            h-[18px]
+                            rounded-[50%]
+                            mr-[6px]
+                            bg-[#cc0000]
+                            p-[4px]
+                        ">
+                            <Exclamation color="#ffffff"/>
+                        </span>
+                        <span className="inline align-middle">{locationPointsError}</span>
+                    </div>
+                </div>
                 <div className={`
                     block
                     w-full
@@ -1208,7 +1458,7 @@ const Editor = () => {
                         text-[14px]
                         2xs:text-[16px]
                         px-[20px]
-                        ${(pickupLocation && destination) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#aaaaaa]"}
+                        ${(pickupLocation && destination && !locationPointsError) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#aaaaaa]"}
                     `} onClick={chooseVehicle}>Continue
                         <div className="
                             inline-block

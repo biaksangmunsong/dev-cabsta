@@ -66,7 +66,7 @@ const store = set => ({
         init: false,
         lastPlace: Date.now(),
         error: null,
-        loading: null,
+        loading: false,
         data: []
     },
     setSavedPlaces: data => set(storeData => ({
@@ -80,7 +80,7 @@ const store = set => ({
             init: false,
             lastPlace: Date.now(),
             error: null,
-            loading: null,
+            loading: false,
             data: []
         }
     })),

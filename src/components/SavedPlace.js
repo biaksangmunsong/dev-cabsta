@@ -74,6 +74,9 @@ const SavedPlace = ({data}) => {
                     2xs:text-[16px]
                     leading-[20px]
                     mb-[8px]
+                    whitespace-nowrap
+                    overflow-hidden
+                    text-ellipsis
                 ">
                     <span className="
                         inline-block
@@ -87,7 +90,7 @@ const SavedPlace = ({data}) => {
                     ">
                         <StarIcon color="#ffffff"/>
                     </span>
-                    <span className="inline-block align-middle">{data.title}</span>
+                    <span className="inline align-middle">{data.title}</span>
                 </h2>
                 <h3 className="
                     block
