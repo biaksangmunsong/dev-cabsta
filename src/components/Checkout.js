@@ -131,6 +131,7 @@ const Checkout = ({checkOut, setCheckOut}) => {
     const setVehicleType = useInputStore(state => state.setVehicleType)
     const signedIn = useUserStore(state => state.signedIn)
     const phoneNumber = useUserStore(state => state.phoneNumber)
+    const countryCode = useUserStore(state => state.countryCode)
     const usersName = useUserStore(state => state.name)
     const profilePhoto = useUserStore(state => state.profilePhoto)
     const setRequestedRide = useStore(state => state.setRequestedRide)
@@ -482,7 +483,7 @@ const Checkout = ({checkOut, setCheckOut}) => {
                                 text-[14px]
                                 2xs:text-[16px]
                                 leading-[20px]
-                            ">{phoneNumber.withoutCountryCode}</div>
+                            ">{phoneNumber.replace(countryCode, "")}</div>
                         </div> : ""
                     }
                     <div className="
@@ -524,7 +525,7 @@ const Checkout = ({checkOut, setCheckOut}) => {
                             text-[11px]
                             2xs:text-[12px]
                             leading-[16px]
-                        ">Pay with cash or GPay, on pickup.</div>
+                        ">Pay with cash or UPI, on pickup.</div>
                     </div>
                     <div className="
                         block

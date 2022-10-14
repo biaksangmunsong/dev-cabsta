@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import axios from "axios"
 import useStore from "../store"
-import { useInputStore } from "../store"
+import { useInputStore, useUserStore } from "../store"
 import LeftArrow from "./icons/LeftArrow"
 import DistanceIcon from "./icons/Distance"
 import ClockIcon from "./icons/Clock"
@@ -37,6 +38,8 @@ const VehicleSelector = () => {
     const setDistanceMatrix = useInputStore(state => state.setDistanceMatrix)
     const vehicleType = useInputStore(state => state.vehicleType)
     const setVehicleType = useInputStore(state => state.setVehicleType)
+    const authToken = useUserStore(state => state.authToken)
+    const resetUserData = useUserStore(state => state.reset)
     const [ data, setData ] = useState({
         init: false,
         loading: false,
@@ -49,9 +52,7 @@ const VehicleSelector = () => {
     }
 
     const getData = useCallback(async () => {
-        if (data.loading || !pickupLocation || !destination){
-            return
-        }
+        if (!authToken || data.loading || !pickupLocation || !destination) return
         
         setData({
             init: true,
@@ -61,57 +62,47 @@ const VehicleSelector = () => {
         })
 
         try {
-            const distanceMatrix = new window.google.maps.DistanceMatrixService()
-            distanceMatrix.getDistanceMatrix({
-                origins: [`${pickupLocation.coords.lat},${pickupLocation.coords.lng}`],
-                destinations: [`${destination.coords.lat},${destination.coords.lng}`],
-                travelMode: "DRIVING",
-                unitSystem: window.google.maps.UnitSystem.METRIC
-            }, (res, status) => {
-                if (status === "OK"){
-                    res.pricing = {
-                        twoWheeler: {
-                            base: 10,
-                            perKm: 10
-                        },
-                        fourWheeler: {
-                            base: 20,
-                            perKm: 20
-                        }
-                    }
-
-                    setDistanceMatrix({
-                        distance: res.rows[0].elements[0].distance,
-                        duration: res.rows[0].elements[0].duration
-                    })
-
-                    // set price
-                    setVehicleType({
-                        ...vehicleType,
-                        price: getPrice(res.pricing, res.rows[0].elements[0].distance.value, vehicleType.type)
-                    })
-
-                    setData({
-                        init: true,
-                        loading: false,
-                        error: null,
-                        data: res
-                    })
-                }
-                else {
-                    setData({
-                        init: true,
-                        loading: false,
-                        error: {
-                            message: "Can't get directions, please choose different locations."
-                        },
-                        data: null
-                    })
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-vehicle-selector-page-data?pickupLocationLat=${pickupLocation.coords.lat}&pickupLocationLng=${pickupLocation.coords.lng}&destinationLat=${destination.coords.lat}&destinationLng=${destination.coords.lng}`, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
                 }
             })
-            // const res = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${destination.lat},${destination.lng}&origins=${pickupLocation.lat},${pickupLocation.lng}&units=metric&key=${staticData.googleMapsApiKey}`)
+            
+            if (res.status !== 200 || !res.data){
+                return setData({
+                    init: true,
+                    loading: false,
+                    error: {
+                        message: "Oops, something went wrong! Please try again."
+                    },
+                    data: null
+                })
+            }
+            
+            setDistanceMatrix({
+                distance: res.data.distanceMatrix.rows[0].elements[0].distance,
+                duration: res.data.distanceMatrix.rows[0].elements[0].duration
+            })
+
+            // set price
+            setVehicleType({
+                ...vehicleType,
+                price: getPrice(res.data.pricing, res.data.distanceMatrix.rows[0].elements[0].distance.value, vehicleType.type)
+            })
+            
+            setData({
+                init: true,
+                loading: false,
+                error: null,
+                data: res.data
+            })
         }
-        catch {
+        catch (err){
+            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+                // alert user that they have to reauthenticate and sign out
+                alert(err.response.data.message)
+                return resetUserData()
+            }
             setData({
                 init: true,
                 loading: false,
@@ -121,16 +112,14 @@ const VehicleSelector = () => {
                 data: null
             })
         }
-    }, [data, pickupLocation, destination, vehicleType, setVehicleType, setDistanceMatrix])
-
+    }, [data, pickupLocation, destination, vehicleType, setVehicleType, setDistanceMatrix, authToken, resetUserData])
+    
     const retryGettingData = () => {
         getData()
     }
 
     const continueToCheckout = () => {
-        if (!vehicleType.price || !data.data || !distanceMatrix){
-            return
-        }
+        if (!vehicleType.price || !data.data || !data.data.distanceMatrix || !distanceMatrix) return
         navigate("/checkout")
     }
     
@@ -278,7 +267,7 @@ const VehicleSelector = () => {
                         </div> : ""
                     }
                     {
-                        data.data ?
+                        (data.data && data.data.distanceMatrix) ?
                         <div className="
                             block
                             w-[94%]
@@ -323,7 +312,7 @@ const VehicleSelector = () => {
                                         2xs:text-[20px]
                                         leading-[23px]
                                         2xs:leading-[25px]
-                                    ">{data.data.rows[0].elements[0].distance.text}</div>
+                                    ">{data.data.distanceMatrix.rows[0].elements[0].distance.text}</div>
                                     <div className="
                                         block
                                         w-[35px]
@@ -366,7 +355,7 @@ const VehicleSelector = () => {
                                         2xs:text-[20px]
                                         leading-[23px]
                                         2xs:leading-[25px]
-                                    ">{data.data.rows[0].elements[0].duration.text}</div>
+                                    ">{data.data.distanceMatrix.rows[0].elements[0].duration.text}</div>
                                     <div className="
                                         block
                                         w-[35px]
@@ -379,6 +368,19 @@ const VehicleSelector = () => {
                                         <ClockIcon color="#8a2be2"/>
                                     </div>
                                 </div>
+                                {
+                                    (data.data && data.data.note) ?
+                                    <div className="
+                                        block
+                                        w-full
+                                        font-defaultRegular
+                                        text-left
+                                        text-[#888888]
+                                        text-[10px]
+                                        2xs:text-[12px]
+                                        mt-[20px]
+                                    "><strong className="font-defaultBold">Note:</strong> {data.data.note}</div> : ""
+                                }
                             </div>
                             <div className="
                                 block
@@ -407,7 +409,7 @@ const VehicleSelector = () => {
                                 mb-[10px]
                             `} onClick={() => onVehicleTypeSelected({
                                 type: "two-wheeler",
-                                price: getPrice(data.data.pricing, data.data.rows[0].elements[0].distance.value, "two-wheeler")
+                                price: getPrice(data.data.pricing, data.data.distanceMatrix.rows[0].elements[0].distance.value, "two-wheeler")
                             })}>
                                 <div className="
                                     block
@@ -419,7 +421,7 @@ const VehicleSelector = () => {
                                     2xs:text-[20px]
                                     leading-[23px]
                                     2xs:leading-[25px]
-                                ">Two Wheeler - ₹{getPrice(data.data.pricing, data.data.rows[0].elements[0].distance.value, "two-wheeler")}</div>
+                                ">Two Wheeler - ₹{getPrice(data.data.pricing, data.data.distanceMatrix.rows[0].elements[0].distance.value, "two-wheeler")}</div>
                                 <div className="
                                     block
                                     w-full
@@ -457,7 +459,7 @@ const VehicleSelector = () => {
                                 relative
                             `} onClick={() => onVehicleTypeSelected({
                                 type: "four-wheeler",
-                                price: getPrice(data.data.pricing, data.data.rows[0].elements[0].distance.value, "four-wheeler")
+                                price: getPrice(data.data.pricing, data.data.distanceMatrix.rows[0].elements[0].distance.value, "four-wheeler")
                             })}>
                                 <div className="
                                     block
@@ -469,7 +471,7 @@ const VehicleSelector = () => {
                                     2xs:text-[20px]
                                     leading-[23px]
                                     2xs:leading-[25px]
-                                ">Four Wheeler - ₹{getPrice(data.data.pricing, data.data.rows[0].elements[0].distance.value, "four-wheeler")}</div>
+                                ">Four Wheeler - ₹{getPrice(data.data.pricing, data.data.distanceMatrix.rows[0].elements[0].distance.value, "four-wheeler")}</div>
                                 <div className="
                                     block
                                     w-full
@@ -526,7 +528,7 @@ const VehicleSelector = () => {
                     text-[14px]
                     2xs:text-[16px]
                     px-[20px]
-                    ${(vehicleType.price && data.data && distanceMatrix) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#888888]"}
+                    ${(vehicleType.price && (data.data && data.data.distanceMatrix) && distanceMatrix) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#888888]"}
                 `} onClick={continueToCheckout}>
                     Continue
                     <div className="

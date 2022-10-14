@@ -10,6 +10,7 @@ import SavedPlace from "../components/SavedPlace"
 import Check from "../components/icons/Check"
 import SadFace from "../components/icons/SadFace"
 import EditIcon from "../components/icons/Edit"
+import EmptyIcon from "../components/icons/Empty"
 import DeleteIcon from "../components/icons/Delete"
 import XIcon from "../components/icons/XIcon"
 import StarIcon from "../components/icons/Star"
@@ -789,6 +790,35 @@ const SavedPlaces = () => {
                             2xs:text-[14px]
                             active:opacity-[.8]
                         " onClick={retryGettingPlaces}>Retry</button>
+                    </div> : ""
+                }
+                {
+                    (!savedPlaces.loading && !savedPlaces.error && savedPlaces.data.length === 0) ?
+                    <div className="
+                        block
+                        w-[94%]
+                        max-w-[1000px]
+                        mx-auto
+                        py-[20px]
+                    ">
+                        <div className="
+                            block
+                            w-[50px]
+                            h-[50px]
+                            mx-auto
+                            mb-[10px]
+                        ">
+                            <EmptyIcon color="#111111"/>
+                        </div>
+                        <div className="
+                            block
+                            w-full
+                            font-defaultBold
+                            text-[#111111]
+                            text-[14px]
+                            2xs:text-[16px]
+                            text-center
+                        ">You don't have any saved place yet.</div>
                     </div> : ""
                 }
             </div>

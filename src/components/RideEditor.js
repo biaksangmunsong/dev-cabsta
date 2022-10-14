@@ -18,6 +18,7 @@ import StarIcon from "./icons/Star"
 import VehicleSelector from "./VehicleSelector"
 import Checkout from "./Checkout"
 import SadFace from "./icons/SadFace"
+import EmptyIcon from "./icons/Empty"
 import Exclamation from "./icons/Exclamation"
 import Ripple from "../images/ripple.gif"
 
@@ -1375,19 +1376,55 @@ const Editor = () => {
                                             " onClick={retryGettingPlaces}>Retry</button>
                                         </div> : ""
                                     }
+                                    {
+                                        (!savedPlaces.loading && !savedPlaces.error && savedPlaces.data.length === 0) ?
+                                        <div className="
+                                            block
+                                            w-[94%]
+                                            max-w-[1000px]
+                                            mx-auto
+                                            py-[20px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[50px]
+                                                h-[50px]
+                                                mx-auto
+                                                mb-[10px]
+                                            ">
+                                                <EmptyIcon color="#111111"/>
+                                            </div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultBold
+                                                text-[#111111]
+                                                text-[14px]
+                                                2xs:text-[16px]
+                                                text-center
+                                            ">You don't have any saved place yet.</div>
+                                        </div> : ""
+                                    }
                                 </div>
                             </div>
                         }
                     </div> : ""
                 }
-                <div className="
+                <div className={`
                     block
                     w-full
                     h-full
                     bg-[#eeeeee]
                     relative
                     z-[10]
-                " ref={mapsContainerRef}></div>
+                    ${location.pathname === "/set-location" ? "pb-[100px]" : "pb-0"}
+                `}>
+                    <div className="
+                        block
+                        w-full
+                        h-full
+                    " ref={mapsContainerRef}></div>
+                </div>
                 <div className={`
                     block
                     w-full
@@ -1395,7 +1432,7 @@ const Editor = () => {
                     z-[19]
                     ${(location.pathname === "/set-location" && locationPointsError) ? "bottom-[99px]" : "-bottom-[110px]"}
                     left-0
-                    bg-[rgba(255,255,255,.6)]
+                    bg-[#ffffff]
                     py-[5px]
                     border-t
                     border-solid
