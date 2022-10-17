@@ -350,118 +350,108 @@ const Checkout = ({checkOut, setCheckOut}) => {
                 block
                 w-full
                 h-full
-                overflow-auto
+                overflow-hidden
                 relative
                 z-[10]
             " ref={scrollableArea}>
                 <div className="
                     block
-                    w-[94%]
-                    max-w-[1000px]
-                    mx-auto
-                    pb-[30px]
+                    w-full
+                    h-[50px]
+                    absolute
+                    z-[20]
+                    top-0
+                    left-1/2
+                    -translate-x-1/2
+                    bg-[#ffffff]
+                    border-b
+                    border-solid
+                    border-[#dddddd]
                 ">
-                    <button type="button" className="
-                        block
-                        w-[50px]
-                        h-[50px]
-                        p-[15px]
-                        -ml-[15px]
-                        active:bg-[#eeeeee]
-                        mb-[15px]
-                    " onClick={() => window.history.back()}>
-                        <LeftArrow color="#111111"/>
-                    </button>
-                    {
-                        checkOut.error ?
-                        <div className="
-                            block
-                            w-full
-                            p-[15px]
-                            bg-[#dd0000]
-                            mb-[30px]
-                            rounded-[6px]
-                            font-defaultRegular
-                            text-left
-                            text-[13px]
-                            2xs:text-[15px]
-                            leading-[20px]
-                            2xs:leading-[22px]
-                            text-[#ffffff]
-                        ">{checkOut.error.message}</div> : ""
-                    }
                     <div className="
                         block
-                        w-full
+                        w-[94%]
+                        max-w-[1000px]
+                        h-full
+                        mx-auto
                         relative
-                        mb-[15px]
                     ">
+                        <button type="button" className="
+                            block
+                            w-[50px]
+                            h-[50px]
+                            p-[15px]
+                            active:bg-[#eeeeee]
+                            mb-[15px]
+                            absolute
+                            z-[10]
+                            top-0
+                            -left-[15px]
+                        " onClick={() => window.history.back()}>
+                            <LeftArrow color="#111111"/>
+                        </button>
                         <div className="
                             block
                             w-full
-                            font-defaultRegular
-                            text-left
-                            text-[#888888]
-                            text-[11px]
-                            2xs:text-[12px]
-                            leading-[16px]
-                            mb-[4px]
-                        ">Name</div>
+                            absolute
+                            z-[5]
+                            top-1/2
+                            -translate-y-[50%]
+                            right-0
+                            pl-[40px]
+                            text-right
+                        ">
+                            <div className="
+                                inline-block
+                                align-middle
+                                font-defaultBold
+                                text-[#8a2be2]
+                                text-[16px]
+                                2xs:text-[18px]
+                                leading-[20px]
+                            ">₹{vehicleType.price}</div>
+                        </div>
+                    </div>
+                </div>
+                <div className="
+                    block
+                    w-full
+                    h-full
+                    overflow-auto
+                    pt-[65px]
+                    pb-[30px]
+                ">
+                    <div className="
+                        block
+                        w-[94%]
+                        max-w-[1000px]
+                        mx-auto
+                        relative
+                        z-[10]
+                    ">
                         {
-                            location.pathname === "/checkout" ?
-                            <TextareaAutosize
-                                placeholder="Enter Your Name"
-                                name="name"
-                                value={name.value}
-                                onChange={onNameInputChange}
-                                minRows={1}
-                                maxRows={10}
-                                className="
-                                    block
-                                    w-full
-                                    min-h-[55px]
-                                    2xs:min-h-[60px]
-                                    bg-[#eeeeee]
-                                    border
-                                    border-solid
-                                    border-[#cccccc]
-                                    font-defaultBold
-                                    text-left
-                                    text-[#111111]
-                                    text-[14px]
-                                    2xs:text-[16px]
-                                    leading-[23px]
-                                    2xs:leading-[24px]
-                                    pr-[30px]
-                                    pl-[10px]
-                                    py-[16px]
-                                    2xs:py-[18px]
-                                    rounded-[4px]
-                                    resize-none
-                                "
-                            /> : ""
+                            checkOut.error ?
+                            <div className="
+                                block
+                                w-full
+                                p-[15px]
+                                bg-[#dd0000]
+                                mb-[30px]
+                                rounded-[6px]
+                                font-defaultRegular
+                                text-left
+                                text-[13px]
+                                2xs:text-[15px]
+                                leading-[20px]
+                                2xs:leading-[22px]
+                                text-[#ffffff]
+                            ">{checkOut.error.message}</div> : ""
                         }
                         <div className="
                             block
-                            w-[30px]
-                            font-defaultRegular
-                            text-center
-                            text-[#444444]
-                            text-[11px]
-                            2xs:text-[12px]
-                            leading-[55px]
-                            2xs:leading-[60px]
-                            absolute
-                            top-[20px]
-                            right-0
-                        ">{50-name.value.length}</div>
-                    </div>
-                    {
-                        (signedIn === "yes" && phoneNumber) ?
-                        <div className="
-                            block
                             w-full
-                            mb-[15px]
+                            relative
+                            mb-[10px]
                         ">
                             <div className="
                                 block
@@ -473,215 +463,226 @@ const Checkout = ({checkOut, setCheckOut}) => {
                                 2xs:text-[12px]
                                 leading-[16px]
                                 mb-[4px]
-                            ">Phone Number</div>
+                            ">Name</div>
+                            {
+                                location.pathname === "/checkout" ?
+                                <TextareaAutosize
+                                    placeholder="Enter Your Name"
+                                    name="name"
+                                    value={name.value}
+                                    onChange={onNameInputChange}
+                                    minRows={1}
+                                    maxRows={10}
+                                    className="
+                                        block
+                                        w-full
+                                        min-h-[55px]
+                                        2xs:min-h-[60px]
+                                        bg-[#eeeeee]
+                                        border
+                                        border-solid
+                                        border-[#cccccc]
+                                        font-defaultBold
+                                        text-left
+                                        text-[#111111]
+                                        text-[14px]
+                                        2xs:text-[16px]
+                                        leading-[23px]
+                                        2xs:leading-[24px]
+                                        pr-[30px]
+                                        pl-[10px]
+                                        py-[16px]
+                                        2xs:py-[18px]
+                                        rounded-[4px]
+                                        resize-none
+                                    "
+                                /> : ""
+                            }
+                            <div className="
+                                block
+                                w-[30px]
+                                font-defaultRegular
+                                text-center
+                                text-[#444444]
+                                text-[11px]
+                                2xs:text-[12px]
+                                leading-[55px]
+                                2xs:leading-[60px]
+                                absolute
+                                top-[20px]
+                                right-0
+                            ">{50-name.value.length}</div>
+                        </div>
+                        {
+                            (signedIn === "yes" && phoneNumber && countryCode) ?
                             <div className="
                                 block
                                 w-full
-                                font-defaultBold
+                                font-defaultRegular
                                 text-left
-                                text-[#111111]
-                                text-[14px]
-                                2xs:text-[16px]
-                                leading-[20px]
-                            ">{phoneNumber.replace(countryCode, "")}</div>
-                        </div> : ""
-                    }
-                    <div className="
-                        block
-                        w-full
-                        mb-[15px]
-                        border-y
-                        border-solid
-                        border-[#cccccc]
-                        py-[15px]
-                    ">
+                                text-[#888888]
+                                text-[11px]
+                                2xs:text-[12px]
+                                leading-[16px]
+                                mb-[4px]
+                            ">Phone Number <b className="font-defaultBold text-[#111111]">{phoneNumber.replace(countryCode, "")}</b></div> : ""
+                        }
                         <div className="
                             block
                             w-full
                             font-defaultRegular
-                            text-left
-                            text-[#888888]
-                            text-[11px]
-                            2xs:text-[12px]
-                            leading-[16px]
-                            mb-[4px]
-                        ">Price</div>
-                        <div className="
-                            block
-                            w-full
-                            font-defaultBold
                             text-left
                             text-[#111111]
-                            text-[23px]
-                            2xs:text-[25px]
-                            leading-[30px]
-                        ">₹{vehicleType.price}</div>
-                        <div className="
-                            block
-                            w-full
-                            font-defaultRegular
-                            text-left
-                            text-[#888888]
-                            text-[11px]
-                            2xs:text-[12px]
-                            leading-[16px]
-                        ">Pay with cash or UPI, on pickup.</div>
-                    </div>
-                    <div className="
-                        block
-                        w-full
-                        font-defaultRegular
-                        text-left
-                        text-[#111111]
-                        text-[14px]
-                        2xs:text-[16px]
-                        leading-[23px]
-                        2xs:leading-[25px]
-                        mb-[15px]
-                    ">Select a Driver</div>
-                    {
-                        drivers.loading ?
-                        <div className="
-                            block
-                            w-[94%]
-                            max-w-[300px]
-                            mx-auto
-                            text-center
-                            py-[50px]
-                        ">
-                            <img src={Ripple} alt="" className="
-                                block
-                                w-[80px]
-                                mx-auto
-                                mb-[6px]
-                            "/>
+                            text-[14px]
+                            2xs:text-[16px]
+                            leading-[23px]
+                            2xs:leading-[25px]
+                            mb-[15px]
+                        ">Select a Driver</div>
+                        {
+                            drivers.loading ?
                             <div className="
                                 block
-                                w-full
-                                font-defaultRegular
+                                w-[94%]
+                                max-w-[300px]
+                                mx-auto
                                 text-center
-                                text-[#111111]
-                                text-[14px]
-                                2xs:text-[16px]
-                                leading-[20px]
-                            ">Searching drivers near you...</div>
-                        </div> : ""
-                    }
-                    {
-                        drivers.error ?
-                        <div className="
-                            block
-                            w-[94%]
-                            max-w-[300px]
-                            mx-auto
-                            text-center
-                            py-[50px]
-                        ">
-                            <div className="
-                                block
-                                w-[60px]
-                                mx-auto
-                                mb-[10px]
+                                py-[50px]
                             ">
-                                <SadFace/>
-                            </div>
+                                <img src={Ripple} alt="" className="
+                                    block
+                                    w-[80px]
+                                    mx-auto
+                                    mb-[6px]
+                                "/>
+                                <div className="
+                                    block
+                                    w-full
+                                    font-defaultRegular
+                                    text-center
+                                    text-[#111111]
+                                    text-[14px]
+                                    2xs:text-[16px]
+                                    leading-[20px]
+                                ">Searching drivers near you...</div>
+                            </div> : ""
+                        }
+                        {
+                            drivers.error ?
+                            <div className="
+                                block
+                                w-[94%]
+                                max-w-[300px]
+                                mx-auto
+                                text-center
+                                py-[50px]
+                            ">
+                                <div className="
+                                    block
+                                    w-[60px]
+                                    mx-auto
+                                    mb-[10px]
+                                ">
+                                    <SadFace/>
+                                </div>
+                                <div className="
+                                    block
+                                    w-full
+                                    font-defaultRegular
+                                    text-center
+                                    text-[#111111]
+                                    text-[14px]
+                                    2xs:text-[16px]
+                                    leading-[20px]
+                                    mb-[20px]
+                                ">{drivers.error.message}</div>
+                                <button type="button" className="
+                                    block
+                                    w-full
+                                    max-w-[120px]
+                                    h-[40px]
+                                    bg-[#8a2be2]
+                                    mx-auto
+                                    font-defaultRegular
+                                    text-center
+                                    text-[#ffffff]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                    rounded-[4px]
+                                    active:opacity-[.8]
+                                " onClick={retryGettingDrivers}>Retry</button>
+                            </div> : ""
+                        }
+                        {
+                            drivers.data ?
                             <div className="
                                 block
                                 w-full
-                                font-defaultRegular
-                                text-center
-                                text-[#111111]
-                                text-[14px]
-                                2xs:text-[16px]
-                                leading-[20px]
-                                mb-[20px]
-                            ">{drivers.error.message}</div>
-                            <button type="button" className="
-                                block
-                                w-full
-                                max-w-[120px]
-                                h-[40px]
-                                bg-[#8a2be2]
-                                mx-auto
-                                font-defaultRegular
-                                text-center
-                                text-[#ffffff]
-                                text-[12px]
-                                2xs:text-[14px]
-                                rounded-[4px]
-                                active:opacity-[.8]
-                            " onClick={retryGettingDrivers}>Retry</button>
-                        </div> : ""
-                    }
-                    {
-                        drivers.data ?
-                        <div className="
-                            block
-                            w-full
-                        ">
-                            {
-                                drivers.data.map(d => {
-                                    return (
-                                        <div key={d.id} className={`
-                                            block
-                                            w-full
-                                            rounded-[6px]
-                                            overflow-hidden
-                                            border-[2px]
-                                            border-solid
-                                            ${(driver && driver.id === d.id) ? "border-[#8a2be2] bg-[#eeeeee]" : "border-[#cccccc] bg-[#ffffff]"}
-                                            relative
-                                            px-[10px]
-                                            py-[15px]
-                                            pl-[60px]
-                                            mb-[10px]
-                                            last:mb-0
-                                        `} onClick={() => onDriverSelected(d)}>
-                                            <div className="
-                                                block
-                                                w-[40px]
-                                                h-[40px]
-                                                absolute
-                                                top-1/2
-                                                -translate-y-1/2
-                                                left-[10px]
-                                                bg-[#eeeeee]
-                                                rounded-[50%]
-                                                bg-no-repeat
-                                                bg-center
-                                                bg-cover
-                                            " style={{backgroundImage: `url(${d.photo})`}}></div>
-                                            <div className="
+                            ">
+                                {
+                                    drivers.data.map(d => {
+                                        return (
+                                            <div key={d.id} className={`
                                                 block
                                                 w-full
-                                                font-defaultBold
-                                                text-left
-                                                text-[#111111]
-                                                text-[13px]
-                                                2xs:text-[15px]
-                                                leading-[20px]
-                                                mb-[5px]
-                                            ">{d.name}, {d.gender}, {d.age}</div>
-                                            <div className="
-                                                block
-                                                w-full
-                                                font-defaultRegular
-                                                text-left
-                                                text-[#111111]
-                                                text-[11px]
-                                                2xs:text-[12px]
-                                                leading-[15px]
-                                            ">
-                                                <div className="inline-block">{d.distance}<span className="inline-dot bg-[#8a2be2]"></span></div>
-                                                <div className="inline-block">{d.vehicle.name}<span className="inline-dot bg-[#8a2be2]"></span></div>
-                                                <div className="inline-block">{d.vehicle.maxPassenger} passenger</div>
+                                                rounded-[6px]
+                                                overflow-hidden
+                                                border-[2px]
+                                                border-solid
+                                                ${(driver && driver.id === d.id) ? "border-[#8a2be2] bg-[#eeeeee]" : "border-[#cccccc] bg-[#ffffff]"}
+                                                relative
+                                                px-[10px]
+                                                py-[15px]
+                                                pl-[60px]
+                                                mb-[10px]
+                                                last:mb-0
+                                            `} onClick={() => onDriverSelected(d)}>
+                                                <div className="
+                                                    block
+                                                    w-[40px]
+                                                    h-[40px]
+                                                    absolute
+                                                    top-1/2
+                                                    -translate-y-1/2
+                                                    left-[10px]
+                                                    bg-[#eeeeee]
+                                                    rounded-[50%]
+                                                    bg-no-repeat
+                                                    bg-center
+                                                    bg-cover
+                                                " style={{backgroundImage: `url(${d.photo})`}}></div>
+                                                <div className="
+                                                    block
+                                                    w-full
+                                                    font-defaultBold
+                                                    text-left
+                                                    text-[#111111]
+                                                    text-[13px]
+                                                    2xs:text-[15px]
+                                                    leading-[20px]
+                                                    mb-[5px]
+                                                ">{d.name}, {d.gender}, {d.age}</div>
+                                                <div className="
+                                                    block
+                                                    w-full
+                                                    font-defaultRegular
+                                                    text-left
+                                                    text-[#111111]
+                                                    text-[11px]
+                                                    2xs:text-[12px]
+                                                    leading-[15px]
+                                                ">
+                                                    <div className="inline-block">{d.distance}<span className="inline-dot bg-[#8a2be2]"></span></div>
+                                                    <div className="inline-block">{d.vehicle.name}<span className="inline-dot bg-[#8a2be2]"></span></div>
+                                                    <div className="inline-block">{d.vehicle.maxPassenger} passenger</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )
-                                })
-                            }
-                        </div> : ""
-                    }
+                                        )
+                                    })
+                                }
+                            </div> : ""
+                        }
+                    </div>
                 </div>
             </div>
             <div className={`

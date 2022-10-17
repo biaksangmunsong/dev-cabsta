@@ -432,7 +432,7 @@ const VehicleSelector = () => {
                                     2xs:text-[14px]
                                     leading-[18px]
                                     2xs:leading-[20px]
-                                ">One passenger</div>
+                                ">Single passenger</div>
                                 <div className="
                                     hidden
                                     3xs:block
@@ -482,7 +482,7 @@ const VehicleSelector = () => {
                                     2xs:text-[14px]
                                     leading-[18px]
                                     2xs:leading-[20px]
-                                ">Upto four passenger</div>
+                                ">Multiple passengers</div>
                                 <div className="
                                     hidden
                                     3xs:block

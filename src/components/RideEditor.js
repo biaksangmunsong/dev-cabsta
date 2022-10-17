@@ -19,6 +19,7 @@ import VehicleSelector from "./VehicleSelector"
 import Checkout from "./Checkout"
 import SadFace from "./icons/SadFace"
 import EmptyIcon from "./icons/Empty"
+import QuestionIcon from "./icons/Question"
 import Exclamation from "./icons/Exclamation"
 import Ripple from "../images/ripple.gif"
 
@@ -51,6 +52,7 @@ const Editor = () => {
         error: null
     })
     const [ locationPointsError, setLocationPointsError ] = useState("")
+    const activeInputRef = useRef(activeInput)
     const pickupInputRef = useRef(null)
     const pickupAutocomplete = useRef(null)
     const destinationInputRef = useRef(null)
@@ -67,11 +69,20 @@ const Editor = () => {
     const directionsRenderer = useRef(null)
     const directionsService = useRef(null)
     const canLoadMoreSavedPlaces = useRef(true)
+
+    const onHintBtnClick = () => {
+        if (window.location.search.includes("show-hints")){
+            window.history.back()
+        }
+        else {
+            navigate("/set-location?show-hints")
+        }
+    }
     
     const startLocationWatch = useCallback(async () => {
         if (!locationWatchId.current && locationPermission === "granted"){
             const watchId = await Geolocation.watchPosition({enableHighAccuracy: true}, data => {
-                if (data.coords){
+                if (data && data.coords){
                     setUsersLocation({
                         lat: data.coords.latitude,
                         lng: data.coords.longitude
@@ -566,6 +577,10 @@ const Editor = () => {
     }, [locationQueries])
 
     useEffect(() => {
+        activeInputRef.current = activeInput
+    }, [activeInput])
+    
+    useEffect(() => {
         if (!savedPlaces.init && locationQueries.includes("expand-saved-places")){
             getPlaces()
         }
@@ -608,6 +623,94 @@ const Editor = () => {
                     clickableIcons: false
                 }
                 mapsRef.current = new window.google.maps.Map(mapsContainerRef.current, mapOptions)
+
+                // listen to map click event
+                mapsRef.current.addListener("click", async e => {
+                    const location = {
+                        lat: e.latLng.lat(),
+                        lng: e.latLng.lng()
+                    }
+                    
+                    // reverse geocode location and set pickup location and destination
+                    if (activeInputRef.current === "pickup"){
+                        if (!pickupMarker.current){
+                            //empty input and set placeholder to loading
+                            if (pickupInputRef.current){
+                                pickupInputRef.current.value = ""
+                                pickupInputRef.current.placeholder = "Loading..."
+                                setPickupLocationInput("")
+                            }
+                            try {
+                                await Haptics.impact({style: "HEAVY"})
+                                if (!geocoder.current){
+                                    geocoder.current = new window.google.maps.Geocoder()
+                                }
+                                const reverseGeocodedData = await geocoder.current.geocode({location})
+                                const formatted_address = getAddress(reverseGeocodedData)
+                                setPickupLocation({
+                                    inputValue: formatted_address,
+                                    coords: location,
+                                    formatted_address
+                                })
+                                pickupInputRef.current.placeholder = "Enter Pickup Location"
+                                // set input value
+                                if (pickupInputRef.current){
+                                    pickupInputRef.current.value = formatted_address
+                                    setPickupLocationInput(formatted_address)
+                                }
+                            }
+                            catch {
+                                setPickupLocation(null)
+                                pickupInputRef.current.placeholder = "Enter Pickup Location"
+                                
+                                // remove marker
+                                if (pickupMarker.current){
+                                    pickupMarker.current.setMap(null)
+                                    pickupMarker.current = null
+                                }
+                            }
+                        }
+                    }
+                    if (activeInputRef.current === "destination"){
+                        if (!destinationMarker.current){
+                            //empty input and set placeholder to loading
+                            if (destinationInputRef.current){
+                                destinationInputRef.current.value = ""
+                                destinationInputRef.current.placeholder = "Loading..."
+                                setDestinationInput("")
+                            }
+                            try {
+                                await Haptics.impact({style: "HEAVY"})
+                                if (!geocoder.current){
+                                    geocoder.current = new window.google.maps.Geocoder()
+                                }
+                                const reverseGeocodedData = await geocoder.current.geocode({location})
+                                const formatted_address = getAddress(reverseGeocodedData)
+                                setDestination({
+                                    inputValue: formatted_address,
+                                    coords: location,
+                                    formatted_address
+                                })
+                                destinationInputRef.current.placeholder = "Enter Destination"
+                                // set input value
+                                if (destinationInputRef.current){
+                                    destinationInputRef.current.value = formatted_address
+                                    setDestinationInput(formatted_address)
+                                }
+                            }
+                            catch {
+                                setDestination(null)
+                                destinationInputRef.current.placeholder = "Enter Destination"
+                                
+                                // remove marker
+                                if (destinationMarker.current){
+                                    destinationMarker.current.setMap(null)
+                                    destinationMarker.current = null
+                                }
+                            }
+                        }
+                    }
+                })
             }
 
             const query = window.location.search
@@ -736,7 +839,7 @@ const Editor = () => {
             query.includes("&lng=") &&
             query.includes("&address=")
         )){
-            if (query && !query.includes("expand-menu")){
+            if (query && !query.includes("expand-menu") && !query.includes("show-hints")){
                 navigate("/set-location", {replace: true})
             }
             if (pickupLocationRef.current && pickupInputRef.current){
@@ -751,7 +854,7 @@ const Editor = () => {
             query.includes("&lng=") &&
             query.includes("&address=")
         )){
-            if (query && !query.includes("expand-menu")){
+            if (query && !query.includes("expand-menu") && !query.includes("show-hints")){
                 navigate("/set-location", {replace: true})
             }
             if (destinationRef.current && destinationInputRef.current){
@@ -912,6 +1015,45 @@ const Editor = () => {
                     </div>
                 </div> : ""
             }
+            <div className={`
+                block
+                ${locationQueries.includes("show-hints") ? "w-full h-full bottom-0 right-0 bg-[#ffffff]" : "w-[40px] h-[40px] bottom-[130px] right-[3%] bg-transparent shadow-xl rounded-[50%]"}
+                overflow-hidden
+                absolute
+                z-[30]
+                duration-[.1s]
+                ease-in-out
+            `}>
+                <div className={`
+                    block
+                    ${locationQueries.includes("show-hints") ? "w-[94%]" : "w-full"}
+                    max-w-[1000px]
+                    mx-auto
+                `}>
+                    <button type="button" className={`
+                        block
+                        w-[40px]
+                        h-[40px]
+                        ${locationQueries.includes("show-hints") ? "bg-transparent -ml-[10px]" : "bg-[#8a2be2]"}
+                        rounded-[50%]
+                        p-[12px]
+                        duration-[.1s]
+                        ease-in-out
+                    `} onClick={onHintBtnClick}>
+                        {
+                            locationQueries.includes("show-hints") ?
+                            <XIcon color="#111111"/> :
+                            <QuestionIcon color="#ffffff"/>
+                        }
+                    </button>
+                </div>
+                <div className={`
+                    ${locationQueries.includes("show-hints") ? "block" : "hidden"}
+                    w-full
+                `}>
+                    <iframe src="/set-location-hints.html" title="W3Schools Free Online Web Tutorials"></iframe>
+                </div>
+            </div>
             <div className={`
                 ${location.pathname === "/choose-vehicle" ? "hidden" : "block"}
                 w-[94%]
@@ -1423,6 +1565,8 @@ const Editor = () => {
                         block
                         w-full
                         h-full
+                        relative
+                        z-[10]
                     " ref={mapsContainerRef}></div>
                 </div>
                 <div className={`
