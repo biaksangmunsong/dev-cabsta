@@ -1036,7 +1036,7 @@ const Editor = () => {
                 </div> : ""
             }
             <div className={`
-                block
+                ${location.pathname === "/set-location" ? "block" : "hidden"}
                 ${
                     locationQueries.includes("show-hints") ?
                     "w-full h-full bottom-0 right-0 bg-[#ffffff]" :
