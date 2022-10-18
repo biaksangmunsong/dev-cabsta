@@ -4,6 +4,7 @@ import axios from "axios"
 import useStore from "../store"
 import { useUserStore, useInputStore } from "../store"
 import { Geolocation } from "@capacitor/geolocation"
+import SetLocationHints from "./SetLocationHints"
 import XIcon from "./icons/XIcon"
 import "../styles/places_autocomplete.css"
 import PickupPin from "../images/pickup-pin.png"
@@ -69,7 +70,8 @@ const Editor = () => {
     const directionsRenderer = useRef(null)
     const directionsService = useRef(null)
     const canLoadMoreSavedPlaces = useRef(true)
-
+    const shouldAutoSetMapCenter = useRef(true)
+    
     const onHintBtnClick = () => {
         if (window.location.search.includes("show-hints")){
             window.history.back()
@@ -288,7 +290,11 @@ const Editor = () => {
         if (activeInput === "pickup"){
             let coords = null
             if (usersLocation){
-                coords = usersLocation
+                // coords = usersLocation
+                coords = {
+                    lat: 24.330617,
+                    lng: 93.693426
+                }
             }
             else {
                 const location = await Geolocation.getCurrentPosition({enableHighAccuracy: true})
@@ -640,6 +646,9 @@ const Editor = () => {
                                 pickupInputRef.current.placeholder = "Loading..."
                                 setPickupLocationInput("")
                             }
+
+                            shouldAutoSetMapCenter.current = false
+                            
                             try {
                                 await Haptics.impact({style: "HEAVY"})
                                 if (!geocoder.current){
@@ -658,6 +667,10 @@ const Editor = () => {
                                     pickupInputRef.current.value = formatted_address
                                     setPickupLocationInput(formatted_address)
                                 }
+                                
+                                setTimeout(() => {
+                                    shouldAutoSetMapCenter.current = true
+                                }, 100)
                             }
                             catch {
                                 setPickupLocation(null)
@@ -668,6 +681,8 @@ const Editor = () => {
                                     pickupMarker.current.setMap(null)
                                     pickupMarker.current = null
                                 }
+                                
+                                shouldAutoSetMapCenter.current = true
                             }
                         }
                     }
@@ -679,6 +694,9 @@ const Editor = () => {
                                 destinationInputRef.current.placeholder = "Loading..."
                                 setDestinationInput("")
                             }
+
+                            shouldAutoSetMapCenter.current = false
+
                             try {
                                 await Haptics.impact({style: "HEAVY"})
                                 if (!geocoder.current){
@@ -697,6 +715,10 @@ const Editor = () => {
                                     destinationInputRef.current.value = formatted_address
                                     setDestinationInput(formatted_address)
                                 }
+
+                                setTimeout(() => {
+                                    shouldAutoSetMapCenter.current = true
+                                }, 100)
                             }
                             catch {
                                 setDestination(null)
@@ -707,6 +729,8 @@ const Editor = () => {
                                     destinationMarker.current.setMap(null)
                                     destinationMarker.current = null
                                 }
+
+                                shouldAutoSetMapCenter.current = true
                             }
                         }
                     }
@@ -753,7 +777,7 @@ const Editor = () => {
             else {
                 if (pickupLocation && !pickupMarker.current && mapsRef.current){
                     createPickupMarker()
-                    if (activeInput === "pickup"){
+                    if (activeInput === "pickup" && shouldAutoSetMapCenter.current){
                         mapsRef.current.setCenter(pickupLocation.coords)
                     }
                 }
@@ -795,7 +819,7 @@ const Editor = () => {
             else {
                 if (destination && !destinationMarker.current && mapsRef.current && !window.location.search.includes("destination=")){
                     createDestinationMarker()
-                    if (activeInput === "destination"){
+                    if (activeInput === "destination" && shouldAutoSetMapCenter.current){
                         mapsRef.current.setCenter(destination.coords)
                     }
                 }
@@ -1017,42 +1041,59 @@ const Editor = () => {
             }
             <div className={`
                 block
-                ${locationQueries.includes("show-hints") ? "w-full h-full bottom-0 right-0 bg-[#ffffff]" : "w-[40px] h-[40px] bottom-[130px] right-[3%] bg-transparent shadow-xl rounded-[50%]"}
+                ${
+                    locationQueries.includes("show-hints") ?
+                    "w-full h-full bottom-0 right-0 bg-[#ffffff]" :
+                    "w-[40px] h-[40px] bottom-[130px] right-[3%] bg-transparent"
+                }
+                max-h-full
                 overflow-hidden
                 absolute
                 z-[30]
-                duration-[.1s]
+                duration-[.2s]
                 ease-in-out
             `}>
                 <div className={`
                     block
-                    ${locationQueries.includes("show-hints") ? "w-[94%]" : "w-full"}
-                    max-w-[1000px]
-                    mx-auto
-                `}>
-                    <button type="button" className={`
-                        block
-                        w-[40px]
-                        h-[40px]
-                        ${locationQueries.includes("show-hints") ? "bg-transparent -ml-[10px]" : "bg-[#8a2be2]"}
-                        rounded-[50%]
-                        p-[12px]
-                        duration-[.1s]
-                        ease-in-out
-                    `} onClick={onHintBtnClick}>
-                        {
-                            locationQueries.includes("show-hints") ?
-                            <XIcon color="#111111"/> :
-                            <QuestionIcon color="#ffffff"/>
-                        }
-                    </button>
-                </div>
-                <div className={`
-                    ${locationQueries.includes("show-hints") ? "block" : "hidden"}
                     w-full
+                    ${locationQueries.includes("show-hints") ? "bg-[#ffffff] h-[60px] border-b" : "h-[40px]"}
+                    overflow-hidden
+                    relative
+                    z-[20]
+                    border-solid
+                    border-[#cccccc]
                 `}>
-                    <iframe src="/set-location-hints.html" title="W3Schools Free Online Web Tutorials"></iframe>
+                    <div className={`
+                        block
+                        ${locationQueries.includes("show-hints") ? "w-[94%]" : "w-full"}
+                        max-w-[1000px]
+                        mx-auto
+                        relative
+                    `}>
+                        <button type="button" className={`
+                            block
+                            w-[40px]
+                            h-[40px]
+                            ${locationQueries.includes("show-hints") ? "bg-transparent top-[10px] -left-[10px]" : "bg-[#111111] top-0 left-0"}
+                            rounded-[50%]
+                            p-[12px]
+                            absolute
+                            z-[20]
+                            duration-[.2s]
+                            ease-in-out
+                        `} onClick={onHintBtnClick}>
+                            {
+                                locationQueries.includes("show-hints") ?
+                                <XIcon color="#111111"/> :
+                                <QuestionIcon color="#ffffff"/>
+                            }
+                        </button>
+                    </div>
                 </div>
+                {
+                    locationQueries.includes("show-hints") ?
+                    <SetLocationHints/> : ""
+                }
             </div>
             <div className={`
                 ${location.pathname === "/choose-vehicle" ? "hidden" : "block"}
@@ -1415,11 +1456,34 @@ const Editor = () => {
                                         <>
                                             {
                                                 savedPlaces.data.map(place => {
+                                                    if (place.deleted){
+                                                        return <div key={place._id} className="
+                                                            block
+                                                            w-full
+                                                            mx-auto
+                                                            font-defaultBold
+                                                            text-left
+                                                            text-[#cccccc]
+                                                            text-[14px]
+                                                            2xs:text-[16px]
+                                                            py-[15px]
+                                                            overflow-hidden
+                                                            border-b
+                                                            border-solid
+                                                            border-[#dddddd]
+                                                            last:border-none
+                                                        ">Deleted</div>
+                                                    }
+                                                    
                                                     return <div key={place._id} className="
                                                         block
                                                         w-full
                                                         py-[15px]
                                                         active:bg-[#eeeeee]
+                                                        border-b
+                                                        border-solid
+                                                        border-[#dddddd]
+                                                        last:border-none
                                                     " onClick={() => selectSavedPlace(place)}>
                                                         <div className="
                                                             block

@@ -1,0 +1,70 @@
+.hints {
+    counter-reset: hint;
+}
+
+.hint {
+    display: block;
+    width: 100%;
+    font-family: "BeVietnamProRegular", sans-serif;
+    font-size: 14px;
+    line-height: 23px;
+    font-weight: normal;
+    color: #444444;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #cccccc;
+    padding-bottom: 30px;
+}
+
+.hint::before {
+    counter-increment: hint;
+    content: counter(hint);
+    display: block;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    text-align: center;
+    background: #111111;
+    color: #ffffff;
+    border-radius: 50%;
+    font-family: "BeVietnamProBold", sans-serif;
+}
+
+.hint:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.hint span {
+    display: block;
+}
+
+.hint b {
+    font-family: "BeVietnamProBold", sans-serif;
+}
+
+.hint video {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 20px;
+}
+
+@media screen and (min-width: 380px){
+    .hint {
+        font-size: 15px;
+        line-height: 25px;
+        padding-left: 40px;
+    }
+
+    .hint::before {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+    }
+}

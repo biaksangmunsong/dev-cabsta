@@ -533,7 +533,7 @@ const AddPlace = () => {
                                 text-[10px]
                                 2xs:text-[12px]
                                 mb-[4px]
-                            "><b className="font-defaultBold">Hint:</b> Tap on map to drop a pin on location, and drag the &#9733; pin to precisely set a location.</p>
+                            "><b className="font-defaultBold">Hint:</b> Tap anywhere on the map to drop a pin on location, and drag the &#9733; pin to precisely set a location.</p>
                             <button className="
                                 inline-block
                                 font-defaultBold

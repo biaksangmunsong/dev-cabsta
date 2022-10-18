@@ -108,7 +108,6 @@ const SavedPlace = ({data}) => {
                 w-[94%]
                 max-w-[1000px]
                 mx-auto
-                rounded-[10px]
                 font-defaultBold
                 text-left
                 text-[#cccccc]
