@@ -290,11 +290,7 @@ const Editor = () => {
         if (activeInput === "pickup"){
             let coords = null
             if (usersLocation){
-                // coords = usersLocation
-                coords = {
-                    lat: 24.330617,
-                    lng: 93.693426
-                }
+                coords = usersLocation
             }
             else {
                 const location = await Geolocation.getCurrentPosition({enableHighAccuracy: true})

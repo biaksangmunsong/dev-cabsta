@@ -43,7 +43,7 @@ const SetLocationHints = () => {
                     w-full
                 ">
                     <p className="hint">
-                        <span>Type the address or place name on the input field and select one from the suggestions</span>
+                        <span>Type the address or place name on the input field and select one from the suggestions.</span>
                         <video src={HintOne} autoPlay={true} muted={true} loop={true}/>
                     </p>
                     <p className="hint">
