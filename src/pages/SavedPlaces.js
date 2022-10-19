@@ -42,7 +42,7 @@ const SavedPlaces = () => {
         })
 
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/v1/add-saved-place`, {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/add-saved-place`, {
                 title: newPlaceForm.title,
                 address: newPlaceForm.address,
                 coords: newPlaceForm.coords
@@ -108,7 +108,7 @@ const SavedPlaces = () => {
         })
 
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/v1/edit-saved-place`, {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/edit-saved-place`, {
                 placeId: newPlaceForm.placeId,
                 title: newPlaceForm.title,
                 address: newPlaceForm.address,
@@ -253,7 +253,7 @@ const SavedPlaces = () => {
         canLoadMore.current = false
         
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-saved-places?lastPlace=${savedPlaces.lastPlace}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/get-saved-places?lastPlace=${savedPlaces.lastPlace}`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
@@ -349,7 +349,7 @@ const SavedPlaces = () => {
         })
         
         try {
-            await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/v1/delete-saved-place`, {
+            await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/delete-saved-place`, {
                 data: {
                     placeId: placeData._id
                 },

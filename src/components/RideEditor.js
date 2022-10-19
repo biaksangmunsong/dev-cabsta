@@ -111,7 +111,7 @@ const Editor = () => {
         canLoadMoreSavedPlaces.current = false
         
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-saved-places?lastPlace=${savedPlaces.lastPlace}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/get-saved-places?lastPlace=${savedPlaces.lastPlace}`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
@@ -245,7 +245,7 @@ const Editor = () => {
     const onPickupInputChange = useCallback(() => {
         const place = pickupAutocomplete.current.getPlace()
 
-        if (place.geometry && pickupInputRef.current){
+        if (place && place.geometry && pickupInputRef.current){
             const coords = {
                 lat: place.geometry.location.lat(),
                 lng: place.geometry.location.lng()
@@ -265,7 +265,7 @@ const Editor = () => {
     const onDestinationInputChange = useCallback(() => {
         const place = destinationAutocomplete.current.getPlace()
 
-        if (place.geometry && destinationInputRef.current){
+        if (place && place.geometry && destinationInputRef.current){
             const coords = {
                 lat: place.geometry.location.lat(),
                 lng: place.geometry.location.lng()
@@ -980,6 +980,9 @@ const Editor = () => {
             )
             if (displacementBetweenPoints < 0.05){
                 return setLocationPointsError("Pickup Location and Destination are too close to each other.")
+            }
+            if (displacementBetweenPoints > 20){
+                return setLocationPointsError("Distance between Pickup Location and Destination should not be more than 20km.")
             }
             
             setLocationPointsError("")

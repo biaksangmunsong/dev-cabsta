@@ -12,23 +12,8 @@ import LongRightArrow from "./icons/LongRightArrow"
 import SadFace from "./icons/SadFace"
 import Spinner from "../images/spinner.gif"
 
-const getPrice = (pricing, distanceInMetres, vehicleType) => {
-    let price = 0
-    const distanceInKm = Math.round(distanceInMetres/1000)
-    if (vehicleType === "two-wheeler"){
-        price = pricing.twoWheeler.base
-        price += pricing.twoWheeler.perKm*distanceInKm
-    }
-    else if (vehicleType === "four-wheeler"){
-        price = pricing.fourWheeler.base
-        price += pricing.fourWheeler.perKm*distanceInKm
-    }
-    
-    return price
-}
-
 const VehicleSelector = () => {
-
+    
     const location = useLocation()
     const navigate = useNavigate()
     const viewport = useStore(state => state.viewport)
@@ -62,7 +47,7 @@ const VehicleSelector = () => {
         })
 
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-vehicle-selector-page-data?pickupLocationLat=${pickupLocation.coords.lat}&pickupLocationLng=${pickupLocation.coords.lng}&destinationLat=${destination.coords.lat}&destinationLng=${destination.coords.lng}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/get-vehicle-selector-page-data?pickupLocationLat=${pickupLocation.coords.lat}&pickupLocationLng=${pickupLocation.coords.lng}&destinationLat=${destination.coords.lat}&destinationLng=${destination.coords.lng}`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
@@ -80,14 +65,14 @@ const VehicleSelector = () => {
             }
             
             setDistanceMatrix({
-                distance: res.data.distanceMatrix.rows[0].elements[0].distance,
-                duration: res.data.distanceMatrix.rows[0].elements[0].duration
+                distance: res.data.distance,
+                duration: res.data.duration
             })
-
+            
             // set price
             setVehicleType({
                 ...vehicleType,
-                price: getPrice(res.data.pricing, res.data.distanceMatrix.rows[0].elements[0].distance.value, vehicleType.type)
+                price: vehicleType.type === "two-wheeler" ? res.data.price.twoWheeler : res.data.price.fourWheeler
             })
             
             setData({
@@ -119,7 +104,7 @@ const VehicleSelector = () => {
     }
 
     const continueToCheckout = () => {
-        if (!vehicleType.price || !data.data || !data.data.distanceMatrix || !distanceMatrix) return
+        if (!vehicleType.price || !data.data || !data.data.price || !distanceMatrix) return
         navigate("/checkout")
     }
     
@@ -267,7 +252,7 @@ const VehicleSelector = () => {
                         </div> : ""
                     }
                     {
-                        (data.data && data.data.distanceMatrix) ?
+                        (data.data && data.data.price) ?
                         <div className="
                             block
                             w-[94%]
@@ -312,7 +297,7 @@ const VehicleSelector = () => {
                                         2xs:text-[20px]
                                         leading-[23px]
                                         2xs:leading-[25px]
-                                    ">{data.data.distanceMatrix.rows[0].elements[0].distance.text}</div>
+                                    ">{data.data.distance.text}</div>
                                     <div className="
                                         block
                                         w-[35px]
@@ -355,7 +340,7 @@ const VehicleSelector = () => {
                                         2xs:text-[20px]
                                         leading-[23px]
                                         2xs:leading-[25px]
-                                    ">{data.data.distanceMatrix.rows[0].elements[0].duration.text}</div>
+                                    ">{data.data.duration.text}</div>
                                     <div className="
                                         block
                                         w-[35px]
@@ -409,7 +394,7 @@ const VehicleSelector = () => {
                                 mb-[10px]
                             `} onClick={() => onVehicleTypeSelected({
                                 type: "two-wheeler",
-                                price: getPrice(data.data.pricing, data.data.distanceMatrix.rows[0].elements[0].distance.value, "two-wheeler")
+                                price: data.data.price.twoWheeler
                             })}>
                                 <div className="
                                     block
@@ -421,7 +406,7 @@ const VehicleSelector = () => {
                                     2xs:text-[20px]
                                     leading-[23px]
                                     2xs:leading-[25px]
-                                ">Two Wheeler - ₹{getPrice(data.data.pricing, data.data.distanceMatrix.rows[0].elements[0].distance.value, "two-wheeler")}</div>
+                                ">Two Wheeler - ₹{data.data.price.twoWheeler}</div>
                                 <div className="
                                     block
                                     w-full
@@ -459,7 +444,7 @@ const VehicleSelector = () => {
                                 relative
                             `} onClick={() => onVehicleTypeSelected({
                                 type: "four-wheeler",
-                                price: getPrice(data.data.pricing, data.data.distanceMatrix.rows[0].elements[0].distance.value, "four-wheeler")
+                                price: data.data.price.fourWheeler
                             })}>
                                 <div className="
                                     block
@@ -471,7 +456,7 @@ const VehicleSelector = () => {
                                     2xs:text-[20px]
                                     leading-[23px]
                                     2xs:leading-[25px]
-                                ">Four Wheeler - ₹{getPrice(data.data.pricing, data.data.distanceMatrix.rows[0].elements[0].distance.value, "four-wheeler")}</div>
+                                ">Four Wheeler - ₹{data.data.price.fourWheeler}</div>
                                 <div className="
                                     block
                                     w-full
@@ -528,7 +513,7 @@ const VehicleSelector = () => {
                     text-[14px]
                     2xs:text-[16px]
                     px-[20px]
-                    ${(vehicleType.price && (data.data && data.data.distanceMatrix) && distanceMatrix) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#888888]"}
+                    ${(vehicleType.price && (data.data && data.data.price) && distanceMatrix) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#888888]"}
                 `} onClick={continueToCheckout}>
                     Continue
                     <div className="

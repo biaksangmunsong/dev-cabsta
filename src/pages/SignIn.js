@@ -68,7 +68,7 @@ const SignIn = () => {
 
         // send request
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/v1/send-signin-otp`, {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/send-signin-otp`, {
                 phoneNumber: phoneNum.phoneNumber
             })
             if (res.status === 200 && res.data && res.data.otpId){
@@ -193,7 +193,7 @@ const SignIn = () => {
 
         // send request
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/v1/signin`, {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/signin`, {
                 otpId: verification.data.otpId,
                 otp: verificationCode
             })

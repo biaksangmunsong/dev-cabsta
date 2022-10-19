@@ -128,7 +128,7 @@ const App = () => {
         if (networkStatus === 1 && !userDataIsUpToDate && authToken){
             const getUserData = async () => {
                 try {
-                    const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-user-data`, {
+                    const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/get-user-data`, {
                         headers: {
                             Authorization: `Bearer ${authToken}`
                         }

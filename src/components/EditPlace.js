@@ -53,7 +53,7 @@ const EditPlace = () => {
         })
 
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/v1/get-saved-place?placeId=${newPlaceForm.placeId}`, {
+            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/get-saved-place?placeId=${newPlaceForm.placeId}`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`
                 }
