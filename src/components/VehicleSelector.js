@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import axios from "axios"
 import useStore from "../store"
 import { useInputStore, useUserStore } from "../store"
+import Pricing from "./Pricing"
 import LeftArrow from "./icons/LeftArrow"
 import DistanceIcon from "./icons/Distance"
 import ClockIcon from "./icons/Clock"
@@ -17,6 +18,7 @@ const VehicleSelector = () => {
     const location = useLocation()
     const navigate = useNavigate()
     const viewport = useStore(state => state.viewport)
+    const locationQueries = useStore(state => state.locationQueries)
     const pickupLocation = useInputStore(state => state.pickupLocation)
     const destination = useInputStore(state => state.destination)
     const distanceMatrix = useInputStore(state => state.distanceMatrix)
@@ -31,6 +33,7 @@ const VehicleSelector = () => {
         error: null,
         data: null
     })
+    const pricingScrollableArea = useRef(null)
 
     const onVehicleTypeSelected = type => {
         setVehicleType(type)
@@ -129,6 +132,12 @@ const VehicleSelector = () => {
             }
         }
     }, [getData, location.pathname, data.init])
+
+    useEffect(() => {
+        if (locationQueries.includes("pricing-details") && pricingScrollableArea.current){
+            pricingScrollableArea.current.scrollTo(0,0)
+        }
+    }, [locationQueries])
     
     return (
         <div className={`
@@ -144,6 +153,82 @@ const VehicleSelector = () => {
             duration-[.2s]
             ease-in-out
         `}>
+            <div className={`
+                block
+                w-full
+                h-full
+                pt-[50px]
+                overflow-hidden
+                absolute
+                z-[30]
+                ${locationQueries.includes("pricing-details") ? "scale-[1] top-0" : "scale-[0] top-full"}
+                left-0
+                bg-[#ffffff]
+                duration-[.2s]
+                ease-in-out
+            `}>
+                <div className="
+                    block
+                    w-full
+                    h-[50px]
+                    bg-[#ffffff]
+                    border-b
+                    border-solid
+                    border-[#dddddd]
+                    absolute
+                    z-[20]
+                    top-0
+                    left-0
+                ">
+                    <div className="
+                        block
+                        w-[94%]
+                        max-w-[1000px]
+                        mx-auto
+                        relative
+                    ">
+                        <button type="button" className="
+                            inline-block
+                            align-middle
+                            w-[50px]
+                            h-[50px]
+                            p-[16px]
+                            -translate-x-[16px]
+                            active:bg-[#eeeeee]
+                        " onClick={() => window.history.back()}>
+                            <LeftArrow color="#111111"/>
+                        </button>
+                        <div className="
+                            hidden
+                            3xs:inline-block
+                            align-middle
+                            font-defaultBold
+                            text-[#111111]
+                            text-[18px]
+                            leading-[50px]
+                            -translate-x-[16px]
+                        ">Pricing</div>
+                    </div>
+                </div>
+                <div className="
+                    block
+                    w-full
+                    h-full
+                    overflow-auto
+                    relative
+                    z-[10]
+                    py-[30px]
+                " ref={pricingScrollableArea}>
+                    <div className="
+                        block
+                        w-[94%]
+                        max-w-[1000px]
+                        mx-auto
+                    ">
+                        <Pricing/>
+                    </div>
+                </div>
+            </div>
             <div className="
                 block
                 w-full
@@ -375,10 +460,19 @@ const VehicleSelector = () => {
                                 text-[#111111]
                                 text-[14px]
                                 2xs:text-[16px]
-                                leading-[23px]
-                                2xs:leading-[25px]
+                                leading-[20px]
+                                2xs:leading-[22px]
                                 mb-[20px]
-                            ">Choose Vehicle Type</div>
+                            ">
+                                <span>Choose Vehicle Type</span>
+                                <Link to="/choose-vehicle?pricing-details" className="
+                                    inline-block
+                                    float-right
+                                    text-[75%]
+                                    text-[#8a2be2]
+                                    active:underline
+                                ">See Pricing Details</Link>
+                            </div>
                             <div className={`
                                 block
                                 w-full

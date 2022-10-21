@@ -22,6 +22,10 @@ const Menu = () => {
     
     const items = [
         {
+            pathname: "/pricing",
+            text: "Pricing"
+        },
+        {
             pathname: "/about",
             text: "About Us"
         },

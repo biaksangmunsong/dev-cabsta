@@ -16,6 +16,7 @@ import Ride from "./pages/Ride"
 import PageNotFound from "./pages/PageNotFound"
 import SavedPlaces from "./pages/SavedPlaces"
 import ChangePhoneNumber from "./pages/ChangePhoneNumber"
+import PricingPage from "./pages/PricingPage"
 
 // import components
 import OfflineBanner from "./components/OfflineBanner"
@@ -37,6 +38,7 @@ const App = () => {
     const resetProfileForm = useStore(state => state.resetProfileForm)
     const resetNewPlaceForm = useStore(state => state.resetNewPlaceForm)
     const resetSavedPlaces = useStore(state => state.resetSavedPlaces)
+    const resetPricing = useStore(state => state.resetPricing)
     const authToken = useUserStore(state => state.authToken)
     const updateUserData = useUserStore(state => state.update)
     const resetUserData = useUserStore(state => state.reset)
@@ -168,8 +170,9 @@ const App = () => {
             resetNewPlaceForm()
             clearInputStore()
             resetSavedPlaces()
+            resetPricing()
         }
-    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces])
+    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetPricing])
     
     return (
         <div className={`
@@ -219,6 +222,9 @@ const App = () => {
                 }/>
                 <Route path="/change-phone-number" element={
                     <ChangePhoneNumber/>
+                }/>
+                <Route path="/pricing" element={
+                    <PricingPage/>
                 }/>
                 <Route path="*" element={
                     <PageNotFound/>

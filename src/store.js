@@ -104,7 +104,21 @@ const store = set => ({
     }})),
     
     userDataIsUpToDate: false,
-    setUserDataIsUpToDate: bool => set(() => ({userDataIsUpToDate: bool}))
+    setUserDataIsUpToDate: bool => set(() => ({userDataIsUpToDate: bool})),
+
+    pricing: {
+        init: false,
+        loading: false,
+        error: null,
+        data: null
+    },
+    setPricing: data => set(() => ({pricing: data})),
+    resetPricing: () => set(() => ({pricing: {
+        init: false,
+        loading: false,
+        error: null,
+        data: null
+    }}))
 })
 
 const hints = set => ({
