@@ -76,7 +76,7 @@ const App = () => {
     useEffect(() => {
         if (
             networkStatus === 0 ||
-            location.pathname === "/choose-vehicle" ||
+            (location.pathname === "/choose-vehicle" && !locationQueries.includes("pricing-details")) ||
             locationQueries.includes("image-cropper") ||
             locationQueries.includes("edit-profile-photo") ||
             (location.pathname === "/saved-places" && locationQueries.includes("prompt"))
