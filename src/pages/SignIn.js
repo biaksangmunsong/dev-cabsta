@@ -71,15 +71,12 @@ const SignIn = () => {
             const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/send-signin-otp`, {
                 phoneNumber: phoneNum.phoneNumber
             })
-            if (res.status === 200 && res.data && res.data.otpId){
+            if (res.status === 200 && res.data && res.data.phoneNumber && res.data.countryCode){
                 setResendTimer(10)
                 setVerification({
                     status: "otp-sent",
                     error: null,
-                    data: {
-                        otpId: res.data.otpId,
-                        phoneNumber: phoneNum.phoneNumber.replace(phoneNum.countryCode, "")
-                    }
+                    data: res.data
                 })
             }
             else {
@@ -194,7 +191,7 @@ const SignIn = () => {
         // send request
         try {
             const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/signin`, {
-                otpId: verification.data.otpId,
+                phoneNumber: verification.data.phoneNumber,
                 otp: verificationCode
             })
             if (res.status === 200 && res.data){
@@ -428,7 +425,7 @@ const SignIn = () => {
                             text-[11px]
                             2xs:text-[12px]
                             leading-[18px]
-                        ">We sent a 4-digit verification code to {verification.data.phoneNumber} via SMS.</div>
+                        ">We sent a 4-digit verification code to {verification.data.phoneNumber.replace(verification.data.countryCode, "")} via SMS.</div>
                         <div className="
                             block
                             w-full

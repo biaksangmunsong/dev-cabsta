@@ -10,7 +10,7 @@ import ClockIcon from "./icons/Clock"
 import Scooter from "./icons/Scooter"
 import Car from "./icons/Car"
 import LongRightArrow from "./icons/LongRightArrow"
-import SadFace from "./icons/SadFace"
+import Exclamation from "./icons/Exclamation"
 import Spinner from "../images/spinner.gif"
 
 const VehicleSelector = () => {
@@ -95,7 +95,8 @@ const VehicleSelector = () => {
                 init: true,
                 loading: false,
                 error: {
-                    message: "Oops, something went wrong! Please try again."
+                    status: (err && err.response && err.response.status) ? err.response.status : 0,
+                    message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Oops, something went wrong! Please try again."
                 },
                 data: null
             })
@@ -305,8 +306,11 @@ const VehicleSelector = () => {
                                 w-[60px]
                                 mx-auto
                                 mb-[10px]
+                                bg-[#888888]
+                                rounded-[50%]
+                                p-[12px]
                             ">
-                                <SadFace/>
+                                <Exclamation color="#ffffff"/>
                             </div>
                             <div className="
                                 block
@@ -317,23 +321,26 @@ const VehicleSelector = () => {
                                 text-[14px]
                                 2xs:text-[16px]
                                 leading-[20px]
-                                mb-[20px]
                             ">{data.error.message}</div>
-                            <button type="button" className="
-                                block
-                                w-full
-                                max-w-[120px]
-                                h-[40px]
-                                bg-[#8a2be2]
-                                mx-auto
-                                font-defaultRegular
-                                text-center
-                                text-[#ffffff]
-                                text-[12px]
-                                2xs:text-[14px]
-                                rounded-[4px]
-                                active:opacity-[.8]
-                            " onClick={retryGettingData}>Retry</button>
+                            {
+                                data.error.status !== 406 ?
+                                <button type="button" className="
+                                    block
+                                    w-full
+                                    max-w-[120px]
+                                    h-[40px]
+                                    bg-[#8a2be2]
+                                    mx-auto
+                                    font-defaultRegular
+                                    text-center
+                                    text-[#ffffff]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                    rounded-[4px]
+                                    mt-[20px]
+                                    active:opacity-[.8]
+                                " onClick={retryGettingData}>Retry</button> : ""
+                            }
                         </div> : ""
                     }
                     {

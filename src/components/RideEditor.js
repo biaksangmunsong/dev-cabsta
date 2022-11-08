@@ -12,7 +12,6 @@ import Spinner from "../images/spinner.gif"
 import DestinationPin from "../images/destination-pin.png"
 import { Haptics } from "@capacitor/haptics"
 import getAddress from "../lib/getAddress"
-import getDisplacementFromLatLonInKm from "../lib/getDisplacementFromLatLonInKm"
 import LongRightArrow from "./icons/LongRightArrow"
 import CrossHair from "./icons/CrossHair"
 import StarIcon from "./icons/Star"
@@ -971,18 +970,6 @@ const Editor = () => {
                 pickupLocation.coords.lng === destination.coords.lng
             ){
                 return setLocationPointsError("Pickup Location and Destination should not be the same.")
-            }
-            const displacementBetweenPoints = getDisplacementFromLatLonInKm(
-                pickupLocation.coords.lat,
-                pickupLocation.coords.lng,
-                destination.coords.lat,
-                destination.coords.lng
-            )
-            if (displacementBetweenPoints < 0.05){
-                return setLocationPointsError("Pickup Location and Destination are too close to each other.")
-            }
-            if (displacementBetweenPoints > 20){
-                return setLocationPointsError("Distance between Pickup Location and Destination should not be more than 20km.")
             }
             
             setLocationPointsError("")

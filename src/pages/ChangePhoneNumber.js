@@ -80,7 +80,7 @@ const ChangePhoneNumber = () => {
             setSubmittingPhoneNumber(false)
             if (res.status === 200 && res.data){
                 setResendTimer(10)
-                setOtpId(res.data.otpId)
+                setOtpId(res.data.phoneNumber)
                 navigate(`${location.pathname}?verify-otp`)
             }
             else {
@@ -150,7 +150,7 @@ const ChangePhoneNumber = () => {
 
         try {
             const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/change-phone-number`, {
-                otpId,
+                phoneNumber: otpId,
                 otp: verificationCode
             }, {
                 headers: {
