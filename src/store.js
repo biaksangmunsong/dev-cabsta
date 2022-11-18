@@ -118,7 +118,28 @@ const store = set => ({
         loading: false,
         error: null,
         data: null
-    }}))
+    }})),
+
+    nearbyDrivers: {
+        init: false,
+        loading: false,
+        error: null,
+        data: null
+    },
+    setNearbyDrivers: data => set(storeData => ({
+        nearbyDrivers: {
+            ...storeData.nearbyDrivers,
+            ...data
+        }
+    })),
+    resetNearbyDrivers: () => set(() => ({
+        nearbyDrivers: {
+            init: false,
+            loading: false,
+            error: null,
+            data: null
+        }
+    }))
 })
 
 const hints = set => ({
@@ -142,6 +163,18 @@ const inputStore = set => ({
     },
     setVehicleType: data => set(() => ({vehicleType: data})),
 
+    name: {
+        prefilled: false,
+        value: ""
+    },
+    setName: data => set(() => ({name: data})),
+
+    phoneNumber: {
+        prefilled: false,
+        value: ""
+    },
+    setPhoneNumber: data => set(() => ({phoneNumber: data})),
+
     clearInputStore: () => set(() => ({
         pickupLocation: null,
         destination: null,
@@ -149,6 +182,14 @@ const inputStore = set => ({
         vehicleType: {
             type: "two-wheeler",
             price: 0
+        },
+        name: {
+            prefilled: false,
+            value: ""
+        },
+        phoneNumber: {
+            prefilled: false,
+            value: ""
         }
     }))
 })
@@ -181,7 +222,7 @@ const useHints = create(persist(hints, {
     getStorages: () => window.localStorage
 }))
 const useInputStore = create(persist(inputStore, {
-    name: "location-input",
+    name: "ride-input",
     getStorages: () => window.localStorage
 }))
 const useUserStore = create(persist(userStore, {

@@ -61,7 +61,7 @@ const VehicleSelector = () => {
                     init: true,
                     loading: false,
                     error: {
-                        message: "Oops, something went wrong! Please try again."
+                        message: "Something went wrong! Please try again."
                     },
                     data: null
                 })
@@ -96,7 +96,7 @@ const VehicleSelector = () => {
                 loading: false,
                 error: {
                     status: (err && err.response && err.response.status) ? err.response.status : 0,
-                    message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Oops, something went wrong! Please try again."
+                    message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong! Please try again."
                 },
                 data: null
             })
@@ -107,9 +107,9 @@ const VehicleSelector = () => {
         getData()
     }
 
-    const continueToCheckout = () => {
+    const continueToRideDetails = () => {
         if (!vehicleType.price || !data.data || !data.data.price || !distanceMatrix) return
-        navigate("/checkout")
+        navigate("/ride-details")
     }
     
     useEffect(() => {
@@ -615,7 +615,7 @@ const VehicleSelector = () => {
                     2xs:text-[16px]
                     px-[20px]
                     ${(vehicleType.price && (data.data && data.data.price) && distanceMatrix) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#888888]"}
-                `} onClick={continueToCheckout}>
+                `} onClick={continueToRideDetails}>
                     Continue
                     <div className="
                         inline-block

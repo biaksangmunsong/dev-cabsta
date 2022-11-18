@@ -32,7 +32,7 @@ const Home = () => {
 
     useEffect(() => {
         if (signedIn === "no"){
-            if (location.pathname === "/set-location" || location.pathname === "/choose-vehicle" || location.pathname === "/checkout"){
+            if (location.pathname === "/set-location" || location.pathname === "/choose-vehicle" || location.pathname === "/ride-details" || location.pathname === "/checkout"){
                 navigate("/", {replace: true})
             }
         }

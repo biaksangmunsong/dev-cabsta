@@ -16,12 +16,12 @@ import LongRightArrow from "./icons/LongRightArrow"
 import CrossHair from "./icons/CrossHair"
 import StarIcon from "./icons/Star"
 import VehicleSelector from "./VehicleSelector"
+import RideDetails from "./RideDetails"
 import Checkout from "./Checkout"
 import SadFace from "./icons/SadFace"
 import EmptyIcon from "./icons/Empty"
 import QuestionIcon from "./icons/Question"
 import Exclamation from "./icons/Exclamation"
-import Ripple from "../images/ripple.gif"
 
 const Editor = () => {
 
@@ -35,10 +35,14 @@ const Editor = () => {
     const setDestination = useInputStore(state => state.setDestination)
     const destination = useInputStore(state => state.destination)
     const distanceMatrix = useInputStore(state => state.distanceMatrix)
+    const passengersName = useInputStore(state => state.name)
+    const passengersPhoneNumber = useInputStore(state => state.phoneNumber)
+
     const viewport = useStore(state => state.viewport)
     const locationQueries = useStore(state => state.locationQueries)
     const savedPlaces = useStore(state => state.savedPlaces)
     const setSavedPlaces = useStore(state => state.setSavedPlaces)
+
     const authToken = useUserStore(state => state.authToken)
     const resetUserData = useUserStore(state => state.reset)
     const [ pickupLocationInput, setPickupLocationInput ] = useState("")
@@ -47,10 +51,6 @@ const Editor = () => {
     const [ locationPermission, setLocationPermission ] = useState(null)
     const [ expandSavedPlaces, setExpandSavedPlaces ] = useState(false)
     const [ usersLocation, setUsersLocation ] = useState(null)
-    const [ checkOut, setCheckOut ] = useState({
-        loading: false,
-        error: null
-    })
     const [ locationPointsError, setLocationPointsError ] = useState("")
     const activeInputRef = useRef(activeInput)
     const pickupInputRef = useRef(null)
@@ -68,6 +68,7 @@ const Editor = () => {
     const locationWatchId = useRef(null)
     const directionsRenderer = useRef(null)
     const directionsService = useRef(null)
+    const directionsData = useRef(null)
     const canLoadMoreSavedPlaces = useRef(true)
     const shouldAutoSetMapCenter = useRef(true)
     
@@ -436,7 +437,7 @@ const Editor = () => {
                     directionsRenderer.current.setDirections(result)
 
                     // move markers
-                    const directionsData = {
+                    directionsData.current = {
                         start: {
                             lat: result.routes[0].legs[0].start_location.lat(),
                             lng: result.routes[0].legs[0].start_location.lng()
@@ -449,8 +450,8 @@ const Editor = () => {
                         duration: result.routes[0].legs[0].duration
                     }
                     if (pickupMarker.current && destinationMarker.current){
-                        pickupMarker.current.setPosition(directionsData.start)
-                        destinationMarker.current.setPosition(directionsData.end)
+                        pickupMarker.current.setPosition(directionsData.current.start)
+                        destinationMarker.current.setPosition(directionsData.current.end)
                     }
                 }
             }
@@ -835,7 +836,7 @@ const Editor = () => {
         setDestination,
         navigate
     ])
-
+    
     useEffect(() => {
         if (activeInput === "pickup" && pickupLocationRef.current){
             if (mapsRef.current){
@@ -901,6 +902,11 @@ const Editor = () => {
 
     useEffect(() => {
         if (location.pathname === "/checkout"){
+            if (!pickupLocation || !destination || !mapsRef.current || !directionsRenderer.current || !distanceMatrix || passengersName.value.length < 4 || passengersName.value.length > 50 || passengersPhoneNumber.value.length !== 10){
+                window.history.back()
+            }
+        }
+        else if (location.pathname === "/ride-details"){
             if (!pickupLocation || !destination || !mapsRef.current || !directionsRenderer.current || !distanceMatrix){
                 window.history.back()
             }
@@ -925,7 +931,7 @@ const Editor = () => {
                 }
             }
         }
-    }, [location.pathname, pickupLocation, destination, distanceMatrix])
+    }, [location.pathname, pickupLocation, destination, distanceMatrix, passengersName, passengersPhoneNumber])
     
     useEffect(() => {
         // create reference of pickup location whenever it changes
@@ -987,44 +993,6 @@ const Editor = () => {
             relative
             overflow-hidden
         `} style={location.pathname !== "/" ? {height: `${viewport.height}px`} : {}}>
-            {
-                (checkOut.loading && location.pathname !== "/") ?
-                <div className="
-                    flex
-                    w-full
-                    h-full
-                    absolute
-                    z-[50]
-                    top-0
-                    left-0
-                    bg-[#ffffff]
-                    py-[50px]
-                    overflow-auto
-                ">
-                    <div className="
-                        block
-                        w-[94%]
-                        max-w-[300px]
-                        m-auto
-                    ">
-                        <img src={Ripple} alt="" className="
-                            block
-                            w-[100px]
-                            mx-auto
-                        "/>
-                        <div className="
-                            block
-                            w-full
-                            font-defaultRegular
-                            text-[14px]
-                            2xs:text-[16px]
-                            text-center
-                            text-[#111111]
-                            leading-[20px]
-                        ">Requesting a Ride...</div>
-                    </div>
-                </div> : ""
-            }
             <div className={`
                 ${location.pathname === "/set-location" ? "block" : "hidden"}
                 ${
@@ -1082,7 +1050,7 @@ const Editor = () => {
                 }
             </div>
             <div className={`
-                ${location.pathname === "/choose-vehicle" ? "hidden" : "block"}
+                ${(location.pathname === "/choose-vehicle" || location.pathname === "/checkout") ? "hidden" : "block"}
                 w-[94%]
                 max-w-[1000px]
                 mx-auto
@@ -1276,9 +1244,10 @@ const Editor = () => {
                 ${location.pathname === "/set-location" ? "h-full" : "h-[40%]"}
                 absolute
                 z-[10]
+                ${location.pathname === "/checkout" ? "pt-[50px]" : "pt-0"}
                 top-0
                 left-0
-                ${location.pathname === "/set-location" ? "pt-[115px]" : location.pathname === "/choose-vehicle" ? "pt-0" : "pt-[200px]"}
+                ${location.pathname === "/set-location" ? "pt-[115px]" : (location.pathname === "/choose-vehicle" || location.pathname === "/checkout") ? "pt-0" : "pt-[200px]"}
                 overflow-hidden
                 duration-[.2s]
                 ease-in-out
@@ -1610,6 +1579,8 @@ const Editor = () => {
                     relative
                     z-[10]
                     ${location.pathname === "/set-location" ? "pb-[100px]" : "pb-0"}
+                    ${location.pathname === "/checkout" ? "border border-solid border-[#cccccc] rounded-[10px]" : ""}
+                    overflow-hidden
                 `}>
                     <div className="
                         block
@@ -1703,10 +1674,8 @@ const Editor = () => {
                 </div>
             </div>
             <VehicleSelector/>
-            <Checkout
-                checkOut={checkOut}
-                setCheckOut={setCheckOut}
-            />
+            <RideDetails/>
+            <Checkout/>
         </div>
     )
 
