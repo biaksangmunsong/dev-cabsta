@@ -7,7 +7,7 @@ import TextareaAutosize from "react-textarea-autosize"
 import LongRightArrow from "./icons/LongRightArrow"
 import LeftArrow from "./icons/LeftArrow"
 
-const Checkout = () => {
+const RideDetails = () => {
 
     const location = useLocation()
     const navigate = useNavigate()
@@ -45,7 +45,7 @@ const Checkout = () => {
         }
     }
 
-    const proceedToCheckout = () => {
+    const continueToNextStep = () => {
         setError("")
 
         if (name.value.length <= 3 || name.value.length > 50){
@@ -62,7 +62,7 @@ const Checkout = () => {
             return setError("Please enter a valid phone number.")
         }
         
-        navigate("/checkout")
+        navigate("/nearby-drivers")
     }
     
     useEffect(() => {
@@ -405,7 +405,7 @@ const Checkout = () => {
                         pickupLocation &&
                         destination
                     ) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#888888]"}
-                `} onClick={proceedToCheckout}>
+                `} onClick={continueToNextStep}>
                     Continue
                     <div className="
                         inline-block
@@ -422,4 +422,4 @@ const Checkout = () => {
 
 }
 
-export default Checkout
+export default RideDetails

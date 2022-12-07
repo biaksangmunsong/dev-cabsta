@@ -139,7 +139,64 @@ const store = set => ({
             error: null,
             data: null
         }
-    }))
+    })),
+
+    uaNearbyDrivers: [],
+    setUaNearbyDrivers: data => set(storeData => ({
+        uaNearbyDrivers: [
+            ...storeData.uaNearbyDrivers,
+            ...data
+        ]
+    })),
+    removeUaNearbyDriver: driverId => set(storeData => {
+        const newList = storeData.uaNearbyDrivers.filter(und => und !== driverId)
+        return ({
+            uaNearbyDrivers: newList
+        })
+    }),
+    resetUaNearbyDrivers: () => set(() => ({
+        uaNearbyDrivers: []
+    })),
+
+    notResponsiveDrivers: [],
+    setNotResponsiveDrivers: data => set(storeData => ({
+        notResponsiveDrivers: [
+            ...storeData.notResponsiveDrivers,
+            ...data
+        ]
+    })),
+    resetNotResponsiveDrivers: () => set(() => ({
+        notResponsiveDrivers: []
+    })),
+    
+    rideRequest: {
+        loading: "",
+        error: null,
+        driver: "",
+        counter: 0,
+        timeout: 0
+    },
+    setRideRequest: data => set(storeData => ({
+        rideRequest: {
+            ...storeData.rideRequest,
+            ...data
+        }
+    })),
+    resetRideRequest: () => set(() => {
+        if (window.requestTimeout){
+            clearTimeout(window.requestTimeout)
+        }
+        
+        return ({
+            rideRequest: {
+                loading: "",
+                error: null,
+                driver: "",
+                counter: 0,
+                timeout: 0
+            }
+        })
+    })
 })
 
 const hints = set => ({

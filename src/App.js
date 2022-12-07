@@ -23,6 +23,9 @@ import Request from "./pages/Request"
 import OfflineBanner from "./components/OfflineBanner"
 import ImageCropper from "./components/ImageCropper"
 
+// import background components
+import WebSocketHandler from "./background-components/WebSocketHandler"
+
 const App = () => {
 
 	const location = useLocation()
@@ -40,6 +43,10 @@ const App = () => {
     const resetNewPlaceForm = useStore(state => state.resetNewPlaceForm)
     const resetSavedPlaces = useStore(state => state.resetSavedPlaces)
     const resetPricing = useStore(state => state.resetPricing)
+    const resetNotResponsiveDrivers = useStore(state => state.resetNotResponsiveDrivers)
+    const resetUaNearbyDrivers = useStore(state => state.resetUaNearbyDrivers)
+    const resetNearbyDrivers = useStore(state => state.resetNearbyDrivers)
+    const resetRideRequest = useStore(state => state.resetRideRequest)
     const authToken = useUserStore(state => state.authToken)
     const updateUserData = useUserStore(state => state.update)
     const resetUserData = useUserStore(state => state.reset)
@@ -165,15 +172,19 @@ const App = () => {
     }, [networkStatus, userDataIsUpToDate, setUserDataIsUpToDate, authToken, updateUserData, resetUserData])
 
     useEffect(() => {
-        // clear all form when signed out
+        // clear app states when signed out
         if (!authToken){
             resetProfileForm()
             resetNewPlaceForm()
             clearInputStore()
             resetSavedPlaces()
             resetPricing()
+            resetNearbyDrivers()
+            resetUaNearbyDrivers()
+            resetNotResponsiveDrivers()
+            resetRideRequest()
         }
-    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetPricing])
+    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetPricing, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest])
     
     return (
         <div className={`
@@ -188,6 +199,7 @@ const App = () => {
             duration-200
             ease-in-out
         `}>
+            <WebSocketHandler/>
             {
                 (networkStatus < 1 && networkStatus !== -1) ?
                 <OfflineBanner/> : ""
@@ -209,7 +221,7 @@ const App = () => {
                 <Route path="/ride-details" element={
                     <Home/>
                 }/>
-                <Route path="/checkout" element={
+                <Route path="/nearby-drivers" element={
                     <Home/>
                 }/>
                 <Route path="/edit-profile" element={

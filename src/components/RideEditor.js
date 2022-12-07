@@ -17,7 +17,7 @@ import CrossHair from "./icons/CrossHair"
 import StarIcon from "./icons/Star"
 import VehicleSelector from "./VehicleSelector"
 import RideDetails from "./RideDetails"
-import Checkout from "./Checkout"
+import NearbyDrivers from "./NearbyDrivers"
 import SadFace from "./icons/SadFace"
 import EmptyIcon from "./icons/Empty"
 import QuestionIcon from "./icons/Question"
@@ -901,7 +901,7 @@ const Editor = () => {
     }, [location.pathname, navigate])
 
     useEffect(() => {
-        if (location.pathname === "/checkout"){
+        if (location.pathname === "/nearby-drivers"){
             if (!pickupLocation || !destination || !mapsRef.current || !directionsRenderer.current || !distanceMatrix || passengersName.value.length < 4 || passengersName.value.length > 50 || passengersPhoneNumber.value.length !== 10){
                 window.history.back()
             }
@@ -1050,7 +1050,7 @@ const Editor = () => {
                 }
             </div>
             <div className={`
-                ${(location.pathname === "/choose-vehicle" || location.pathname === "/checkout") ? "hidden" : "block"}
+                ${(location.pathname === "/choose-vehicle" || location.pathname === "/nearby-drivers") ? "hidden" : "block"}
                 w-[94%]
                 max-w-[1000px]
                 mx-auto
@@ -1244,10 +1244,10 @@ const Editor = () => {
                 ${location.pathname === "/set-location" ? "h-full" : "h-[40%]"}
                 absolute
                 z-[10]
-                ${location.pathname === "/checkout" ? "pt-[50px]" : "pt-0"}
+                ${location.pathname === "/nearby-drivers" ? "pt-[50px]" : "pt-0"}
                 top-0
                 left-0
-                ${location.pathname === "/set-location" ? "pt-[115px]" : (location.pathname === "/choose-vehicle" || location.pathname === "/checkout") ? "pt-0" : "pt-[200px]"}
+                ${location.pathname === "/set-location" ? "pt-[115px]" : (location.pathname === "/choose-vehicle" || location.pathname === "/nearby-drivers") ? "pt-0" : "pt-[200px]"}
                 overflow-hidden
                 duration-[.2s]
                 ease-in-out
@@ -1579,7 +1579,7 @@ const Editor = () => {
                     relative
                     z-[10]
                     ${location.pathname === "/set-location" ? "pb-[100px]" : "pb-0"}
-                    ${location.pathname === "/checkout" ? "border border-solid border-[#cccccc] rounded-[10px]" : ""}
+                    ${location.pathname === "/nearby-drivers" ? "border border-solid border-[#cccccc] rounded-[10px]" : ""}
                     overflow-hidden
                 `}>
                     <div className="
@@ -1675,7 +1675,7 @@ const Editor = () => {
             </div>
             <VehicleSelector/>
             <RideDetails/>
-            <Checkout/>
+            <NearbyDrivers/>
         </div>
     )
 
