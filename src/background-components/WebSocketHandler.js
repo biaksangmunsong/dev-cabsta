@@ -59,6 +59,20 @@ const WebSocketHandler = () => {
 						}
 					}
 				})
+				window.socket.on("ride-request-rejected", driverId => {
+					if (window.location.pathname === "/nearby-drivers" && rideRequestRef.current && rideRequestRef.current.driver === driverId){
+						resetRideRequest()
+						window.alert("Driver reject your request!")
+					}
+				})
+				window.socket.on("sync-request-timeout", ttl => {
+					if (window.location.pathname === "/nearby-drivers" && rideRequestRef.current && rideRequestRef.current.driver){
+						if (window.requestTimeout){
+							clearTimeout(window.requestTimeout)
+						}
+						setRideRequest({ttl})
+					}
+				})
 			}
 		}
 		else {

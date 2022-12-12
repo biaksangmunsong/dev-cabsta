@@ -173,8 +173,10 @@ const store = set => ({
         loading: "",
         error: null,
         driver: "",
-        counter: 0,
-        timeout: 0
+        ttl: {
+            value: 0,
+            start: 0
+        }
     },
     setRideRequest: data => set(storeData => ({
         rideRequest: {
@@ -192,8 +194,10 @@ const store = set => ({
                 loading: "",
                 error: null,
                 driver: "",
-                counter: 0,
-                timeout: 0
+                ttl: {
+                    value: 0,
+                    start: 0
+                }
             }
         })
     })

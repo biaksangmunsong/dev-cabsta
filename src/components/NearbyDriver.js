@@ -5,6 +5,8 @@ import useStore from "../store"
 import { useUserStore, useInputStore } from "../store"
 import getTimeInMinutes from "../lib/getTimeInMinutes"
 import RippleThick from "../images/ripple-thick.gif"
+import Spinner from "../images/spinner.gif"
+import CircularProgress from "./icons/CircularProgress"
 
 const NearbyDriver = ({driver}) => {
 
@@ -50,8 +52,10 @@ const NearbyDriver = ({driver}) => {
             loading: driver._id,
             error: null,
             driver: "",
-            counter: 0,
-            timeout: 0
+            ttl: {
+                value: 0,
+                start: 0
+            }
         })
         
         try {
@@ -70,8 +74,7 @@ const NearbyDriver = ({driver}) => {
                     loading: "",
                     error: null,
                     driver: res.data.driverId,
-                    counter: 1,
-                    timeout: res.data.timeout
+                    ttl: res.data.ttl
                 })
             }
             else {
@@ -79,8 +82,10 @@ const NearbyDriver = ({driver}) => {
                     loading: "",
                     error: "Something went wrong, please try again.",
                     driver: "",
-                    counter: 0,
-                    timeout: 0
+                    ttl: {
+                        value: 0,
+                        start: 0
+                    }
                 })
             }
         }
@@ -112,8 +117,10 @@ const NearbyDriver = ({driver}) => {
                     message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
                 },
                 driver: "",
-                counter: 0,
-                timeout: 0
+                ttl: {
+                    value: 0,
+                    start: 0
+                }
             })
         }
     }
@@ -159,21 +166,23 @@ const NearbyDriver = ({driver}) => {
             block
             w-full
             bg-[#ffffff]
+            overflow-hidden
+            relative
             mb-[5px]
             last:mb-0
-            ${(inactive || uaNearbyDrivers.includes(driver._id)) ? "opacity-[.5]" : ""}
             ${(rideRequest.loading === driver._id || rideRequest.driver === driver._id) ? "sticky -top-[6px] z-[20]" : "relative z-[10]"}
         `}>
-            <div className="
+            <div className={`
                 block
                 w-[94%]
                 mx-auto
                 relative
-                py-[15px]
+                py-[20px]
                 pl-[50px]
                 2xs:pl-[60px]
-                pr-[100px]
-            ">
+                pr-[90px]
+                ${(inactive || uaNearbyDrivers.includes(driver._id)) ? "opacity-[.2]" : ""}
+            `}>
                 <div className="
                     block
                     w-[40px]
@@ -186,87 +195,113 @@ const NearbyDriver = ({driver}) => {
                     -translate-y-1/2
                     left-0
                 ">
-                    <div className={`
-                        block
-                        w-full
-                        h-full
-                        bg-no-repeat
-                        bg-center
-                        bg-cover
-                        rounded-[50%]
-                        relative
-                        z-[10]
-                        ${rideRequest.driver === driver._id ? "scale-[.8]" : ""}
-                        duration-[.2s]
-                        ease-in-out
-                    `} style={{
-                        backgroundImage: `url(${driver.photo.thumbnail_url})`,
-                        backgroundColor: "#dddddd"
-                    }}></div>
-                    <div className={`
-                        block
-                        w-full
-                        h-full
-                        absolute
-                        z-[5]
-                        top-0
-                        left-0
-                        bg-no-repeat
-                        bg-center
-                        bg-cover
-                        opacity-[.5]
-                        ${rideRequest.driver === driver._id ? "scale-[2]" : ""}
-                        duration-[.2s]
-                        ease-in-out
-                    `} style={{backgroundImage: `url(${RippleThick})`}}></div>
+                    {
+                        rideRequest.driver === driver._id ?
+                        <div className="
+                            block
+                            w-full
+                            h-full
+                            relative
+                        ">
+                            <div className="
+                                block
+                                w-full
+                                h-full
+                                relative
+                                z-[10]
+                            ">
+                                <div className="
+                                    block
+                                    w-full
+                                    absolute
+                                    top-1/2
+                                    -translate-y-1/2
+                                    left-0
+                                    font-defaultBold
+                                    text-center
+                                    text-[#8a2be2]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">{rideRequest.ttl.value}</div>
+                            </div>
+                            <div className="
+                                block
+                                w-full
+                                h-full
+                                -rotate-[90deg]
+                                absolute
+                                z-[20]
+                                top-0
+                                left-0
+                            ">
+                                <CircularProgress
+                                    ttlStart={rideRequest.ttl.start}
+                                    ttl={rideRequest.ttl.value}
+                                    color="#8a2be2"
+                                    bgColor="#87ceeb"
+                                    dashedCount={80}
+                                />
+                            </div>
+                        </div> :
+                        rideRequest.loading === driver._id ?
+                        <div className="
+                            block
+                            w-full
+                            h-full
+                            bg-no-repeat
+                            bg-center
+                            bg-cover
+                            rounded-[50%]
+                            relative
+                            z-[10]
+                        " style={{
+                            backgroundImage: `url(${Spinner})`
+                        }}></div> :
+                        <div className={`
+                            block
+                            w-full
+                            h-full
+                            bg-no-repeat
+                            bg-center
+                            bg-cover
+                            rounded-[50%]
+                            relative
+                            z-[10]
+                        `} style={{
+                            backgroundImage: `url(${driver.photo.thumbnail_url})`,
+                            backgroundColor: "#dddddd"
+                        }}></div>
+                    }
                 </div>
                 {
-                    (!inactive && !uaNearbyDrivers.includes(driver._id)) ?
-                    <button type="button" className={`
+                    (rideRequest.driver !== driver._id && rideRequest.loading !== driver._id && !uaNearbyDrivers.includes(driver._id)) ?
+                    <div className={`
                         block
-                        w-[90px]
-                        h-[35px]
-                        overflow-hidden
-                        bg-[rgba(100,100,200,.2)]
-                        active:bg-[rgba(100,100,200,.3)]
+                        w-[80px]
+                        leading-[34px]
                         absolute
                         top-1/2
                         -translate-y-1/2
                         right-0
-                        rounded-[4px]
-                        font-defaultBold
-                        text-center
+                        font-defaultRegular
                         text-[12px]
-                        text-[#111111]
+                        text-[#8a2be2]
+                        border
+                        border-solid
+                        border-[#8a2be2]
+                        rounded-[4px]
+                        text-center
+                        active:bg-[#dddddd]
                     `} onClick={
-                        rideRequest.driver === driver._id ?
-                        abortRideRequest :
-                        rideRequest.loading === driver._id ?
-                        null :
-                        requestARide
-                    }>
-                        <span className="relative z-[20]">{rideRequest.driver === driver._id ? "Abort" : rideRequest.loading === driver._id ? "..." : "Request"}</span>
-                        {
-                            rideRequest.driver === driver._id ?
-                            <span className={`
-                                block
-                                h-full
-                                absolute
-                                z-[10]
-                                bg-[rgba(200,20,20,.5)]
-                                top-0
-                                left-0
-                            `} style={{
-                                width: `${100-(Math.round((rideRequest.counter/rideRequest.timeout)*100))}%`
-                            }}></span> : ""
-                        }
-                    </button> : ""
+                        (!uaNearbyDrivers.includes(driver._id) && !rideRequest.driver && !rideRequest.loading) ?
+                        requestARide : null
+                    }>Request</div> : ""
                 }
                 {
                     uaNearbyDrivers.includes(driver._id) ?
                     <div className="
                         block
-                        w-[90px]
+                        w-[80px]
                         leading-[35px]
                         overflow-hidden
                         absolute
@@ -285,8 +320,8 @@ const NearbyDriver = ({driver}) => {
                     w-full
                     font-defaultBold
                     text-left
-                    text-[13px]
-                    2xs:text-[15px]
+                    text-[14px]
+                    2xs:text-[16px]
                     text-[#111111]
                     leading-[20px]
                     mb-[5px]
@@ -303,11 +338,77 @@ const NearbyDriver = ({driver}) => {
                 `}>{
                     (notResponsiveDrivers.includes(driver._id) && rideRequest.loading !== driver._id && rideRequest.driver !== driver._id) ?
                     "Not Responding" :
-                    rideRequest.driver === driver._id ?
-                    "Requesting..." :
                     `${driver.gender} | ${driver.age} | ${timeInMinutes ? `${timeInMinutes} min${timeInMinutes > 1 ? "s" : ""} away` : "..."}`
                 }</h3>
             </div>
+            <div className={`
+                block
+                w-[94%]
+                max-w-[1000px]
+                mx-auto
+                ${(rideRequest.driver === driver._id || rideRequest.loading === driver._id) ? "h-[100px] pb-[20px]" : "h-0"}
+                overflow-hidden
+                duration-[.2s]
+                ease-in-out
+            `}>
+                <div className={`
+                    block
+                    w-full
+                    font-defaultRegular
+                    text-left
+                    text-[#888888]
+                    text-[11px]
+                    2xs:text-[13px]
+                    leading-[20px]
+                    mb-[10px]
+                    overflow-hidden
+                    text-ellipsis
+                    whitespace-nowrap
+                    ${rideRequest.driver === driver._id ? "" : "opacity-0"}
+                `}>Waiting for driver's response...</div>
+                <button type="button" className={`
+                    block
+                    w-full
+                    h-[50px]
+                    overflow-hidden
+                    font-defaultBold
+                    text-center
+                    text-[12px]
+                    2xs:text-[14px]
+                    text-[#ffffff]
+                    bg-[#990000]
+                    active:bg-[#bb0000]
+                    uppercase
+                    ${rideRequest.driver === driver._id ? "" : "opacity-0"}
+                `} onClick={rideRequest.driver === driver._id ? abortRideRequest : null}>Abort</button>
+            </div>
+            {
+                (rideRequest.driver === driver._id || rideRequest.loading === driver._id) ?
+                <div className="
+                    block
+                    w-full
+                    h-[5px]
+                    relative
+                    bg-[#dddddd]
+                    overflow-hidden
+                ">
+                    <div className="
+                        block
+                        w-[300%]
+                        h-full
+                        absolute
+                        z-0
+                        top-0
+                        left-0
+                        -translate-x-[60%]
+                        2xs:ml-[25px]
+                        bg-no-repeat
+                        bg-center
+                        bg-cover
+                        opacity-[.8]
+                    " style={{backgroundImage: `url(${RippleThick})`}}></div>
+                </div> : ""
+            }
         </div>
     )
 

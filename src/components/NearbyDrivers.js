@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react"
 import { useLocation } from "react-router-dom"
 import axios from "axios"
+import { Haptics } from "@capacitor/haptics"
 import useStore from "../store"
 import { useUserStore } from "../store"
 import { useInputStore } from "../store"
@@ -88,6 +89,7 @@ const NearbyDrivers = () => {
     }, [authToken, pickupLocation, destination, resetUserData, setNearbyDrivers, location.pathname, vehicleType.type, rideRequest.loading, rideRequest.driver])
 
     const refresh = () => {
+        resetRideRequest()
         resetUaNearbyDrivers()
         resetNotResponsiveDrivers()
         getNearbyDrivers()
@@ -129,12 +131,15 @@ const NearbyDrivers = () => {
     }, [location.pathname, getNearbyDrivers, rideRequest.error])
     
     useEffect(() => {
-        if (rideRequest.counter && rideRequest.timeout){
-            if (rideRequest.counter < rideRequest.timeout){
+        if (rideRequest.ttl.start){
+            if (rideRequest.ttl.value){
                 window.requestTimeout = setTimeout(() => {
                     if (rideRequestRef.current && rideRequestRef.current.driver){
                         setRideRequest({
-                            counter: rideRequest.counter+1
+                            ttl: {
+                                ...rideRequest.ttl,
+                                value: rideRequest.ttl.value-1
+                            }
                         })
                     }
                 }, 1000)
@@ -142,21 +147,16 @@ const NearbyDrivers = () => {
             else {
                 if (rideRequestRef.current){
                     setNotResponsiveDrivers([rideRequestRef.current.driver])
-
+    
                     if (window.socket && window.socket.connected){
                         window.socket.emit("broadcast-driver-unresponsive", rideRequestRef.current.driver)
                     }
                 }
-                setRideRequest({
-                    loading: "",
-                    error: null,
-                    driver: "",
-                    counter: 0,
-                    timeout: 0
-                })
+                resetRideRequest()
+                Haptics.notification({type: "ERROR"})
             }
         }
-    }, [rideRequest.counter, rideRequest.timeout, setRideRequest, setNotResponsiveDrivers])
+    }, [rideRequest.ttl, setRideRequest, resetRideRequest, setNotResponsiveDrivers])
     
     return (
         <div className={`
@@ -164,7 +164,7 @@ const NearbyDrivers = () => {
             w-full
             h-full
             overflow-hidden
-            bg-[#eeeeee]
+            bg-[#dddddd]
             absolute
             ${location.pathname.startsWith("/nearby-driver") ? "top-0" : "top-full"}
             left-0
@@ -260,6 +260,9 @@ const NearbyDrivers = () => {
                         bottom-[25px]
                         left-1/2
                         -translate-x-1/2
+                        border
+                        border-solid
+                        border-[#8a2be2]
                     " onClick={refresh}>
                         <div className="
                             inline-block
