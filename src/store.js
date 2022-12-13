@@ -140,7 +140,7 @@ const store = set => ({
             data: null
         }
     })),
-
+    
     uaNearbyDrivers: [],
     setUaNearbyDrivers: data => set(storeData => ({
         uaNearbyDrivers: [
@@ -167,6 +167,17 @@ const store = set => ({
     })),
     resetNotResponsiveDrivers: () => set(() => ({
         notResponsiveDrivers: []
+    })),
+    
+    rejectingDrivers: [],
+    setRejectingDrivers: data => set(storeData => ({
+        rejectingDrivers: [
+            ...storeData.rejectingDrivers,
+            ...data
+        ]
+    })),
+    resetRejectingDrivers: () => set(() => ({
+        rejectingDrivers: []
     })),
     
     rideRequest: {

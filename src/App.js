@@ -45,6 +45,7 @@ const App = () => {
     const resetPricing = useStore(state => state.resetPricing)
     const resetNotResponsiveDrivers = useStore(state => state.resetNotResponsiveDrivers)
     const resetUaNearbyDrivers = useStore(state => state.resetUaNearbyDrivers)
+    const resetRejectingDrivers = useStore(state => state.resetRejectingDrivers)
     const resetNearbyDrivers = useStore(state => state.resetNearbyDrivers)
     const resetRideRequest = useStore(state => state.resetRideRequest)
     const authToken = useUserStore(state => state.authToken)
@@ -180,11 +181,12 @@ const App = () => {
             resetSavedPlaces()
             resetPricing()
             resetNearbyDrivers()
+            resetRejectingDrivers()
             resetUaNearbyDrivers()
             resetNotResponsiveDrivers()
             resetRideRequest()
         }
-    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetPricing, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest])
+    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetPricing, resetRejectingDrivers, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest])
     
     return (
         <div className={`

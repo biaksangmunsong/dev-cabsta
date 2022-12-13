@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import useStore from "../store"
 import { useUserStore } from "../store"
 import { io } from "socket.io-client"
+import { Haptics } from "@capacitor/haptics"
 
 const WebSocketHandler = () => {
 
@@ -9,6 +10,7 @@ const WebSocketHandler = () => {
 	const rideRequest = useStore(state => state.rideRequest)
 	const rideRequestRef = useRef(rideRequest)
 	const setRideRequest = useStore(state => state.setRideRequest)
+	const setRejectingDrivers = useStore(state => state.setRejectingDrivers)
 	const resetRideRequest = useStore(state => state.resetRideRequest)
 	const setUaNearbyDrivers = useStore(state => state.setUaNearbyDrivers)
 	const removeUaNearbyDriver = useStore(state => state.removeUaNearbyDriver)
@@ -61,8 +63,9 @@ const WebSocketHandler = () => {
 				})
 				window.socket.on("ride-request-rejected", driverId => {
 					if (window.location.pathname === "/nearby-drivers" && rideRequestRef.current && rideRequestRef.current.driver === driverId){
+						setRejectingDrivers([driverId])
 						resetRideRequest()
-						window.alert("Driver reject your request!")
+						Haptics.notification({type: "ERROR"})
 					}
 				})
 				window.socket.on("sync-request-timeout", ttl => {
@@ -81,7 +84,7 @@ const WebSocketHandler = () => {
 				window.socket = undefined
 			}
 		}
-	}, [authToken, setRideRequest, setUaNearbyDrivers, removeUaNearbyDriver, resetRideRequest])
+	}, [authToken, setRideRequest, setRejectingDrivers, setUaNearbyDrivers, removeUaNearbyDriver, resetRideRequest])
 
     return (<div className="hidden"></div>)
 

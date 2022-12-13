@@ -15,6 +15,7 @@ const NearbyDriver = ({driver}) => {
     const resetRideRequest = useStore(state => state.resetRideRequest)
     const notResponsiveDrivers = useStore(state => state.notResponsiveDrivers)
     const uaNearbyDrivers = useStore(state => state.uaNearbyDrivers)
+    const rejectingDrivers = useStore(state => state.rejectingDrivers)
     const nearbyDrivers = useStore(state => state.nearbyDrivers)
     const setUaNearbyDrivers = useStore(state => state.setUaNearbyDrivers)
     const authToken = useUserStore(state => state.authToken)
@@ -274,7 +275,7 @@ const NearbyDriver = ({driver}) => {
                     }
                 </div>
                 {
-                    (rideRequest.driver !== driver._id && rideRequest.loading !== driver._id && !uaNearbyDrivers.includes(driver._id)) ?
+                    (rideRequest.driver !== driver._id && rideRequest.loading !== driver._id && !uaNearbyDrivers.includes(driver._id) && !rejectingDrivers.includes(driver._id)) ?
                     <div className={`
                         block
                         w-[80px]
@@ -313,7 +314,23 @@ const NearbyDriver = ({driver}) => {
                         text-center
                         text-[12px]
                         text-[#111111]
-                    ">U/A</div> : ""
+                    ">U/A</div> :
+                    rejectingDrivers.includes(driver._id) ?
+                    <div className="
+                        block
+                        w-[80px]
+                        leading-[16px]
+                        overflow-hidden
+                        absolute
+                        top-1/2
+                        -translate-y-1/2
+                        right-0
+                        rounded-[4px]
+                        font-defaultRegular
+                        text-center
+                        text-[12px]
+                        text-[#990000]
+                    ">Request<br/>Rejected</div> : ""
                 }
                 <h2 className={`
                     block

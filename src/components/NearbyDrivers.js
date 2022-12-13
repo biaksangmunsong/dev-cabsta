@@ -27,6 +27,7 @@ const NearbyDrivers = () => {
     const setNearbyDrivers = useStore(state => state.setNearbyDrivers)
     const rideRequest = useStore(state => state.rideRequest)
     const setRideRequest = useStore(state => state.setRideRequest)
+    const resetRejectingDrivers = useStore(state => state.resetRejectingDrivers)
     const resetUaNearbyDrivers = useStore(state => state.resetUaNearbyDrivers)
     const setNotResponsiveDrivers = useStore(state => state.setNotResponsiveDrivers)
     const resetNotResponsiveDrivers = useStore(state => state.resetNotResponsiveDrivers)
@@ -91,7 +92,6 @@ const NearbyDrivers = () => {
     const refresh = () => {
         resetRideRequest()
         resetUaNearbyDrivers()
-        resetNotResponsiveDrivers()
         getNearbyDrivers()
     }
     
@@ -116,13 +116,15 @@ const NearbyDrivers = () => {
                     rideRequest.loading || rideRequest.driver
                 )
             }
-
+            
+            // reset rejecting drivers list
+            resetRejectingDrivers()
             // reset unavailable drivers list
             resetUaNearbyDrivers()
             // reset not responsive drivers list
             resetNotResponsiveDrivers()
         }
-    }, [location.pathname, resetRideRequest, resetUaNearbyDrivers, resetNotResponsiveDrivers, rideRequest.loading, rideRequest.driver])
+    }, [location.pathname, resetRideRequest, resetRejectingDrivers, resetUaNearbyDrivers, resetNotResponsiveDrivers, rideRequest.loading, rideRequest.driver])
 
     useEffect(() => {
         if (location.pathname === "/nearby-drivers" && rideRequest.error && rideRequest.error.code === "driver_unavailable"){
