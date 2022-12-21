@@ -86,3 +86,19 @@ input, textarea {
 	border-radius: 50%;
 	margin: 0 4px;
 }
+
+@keyframes pulseDot {
+	0% {
+		opacity: .2;
+	}
+	50% {
+		opacity: 1;
+	}
+	100% {
+		opacity: .2;
+	}
+}
+
+.pulse-dot {
+	animation: pulseDot 2s ease-in-out infinite;
+}

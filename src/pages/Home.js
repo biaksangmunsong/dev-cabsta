@@ -12,6 +12,7 @@ const Home = () => {
     const navigate = useNavigate()
     const location = useLocation()
     const signedIn = useUserStore(state => state.signedIn)
+    const authToken = useUserStore(state => state.authToken)
     const [ requestBtnHidden, setRequestBtnHidden ] = useState(false)
     const expandMenu = useStore(state => state.expandMenu)
 
@@ -37,6 +38,12 @@ const Home = () => {
             }
         }
     }, [location.pathname, signedIn, navigate])
+
+    useEffect(() => {
+        if (!authToken){
+            navigate("/", {replace: true})
+        }
+    }, [authToken, navigate])
     
     return (
         <div className={`

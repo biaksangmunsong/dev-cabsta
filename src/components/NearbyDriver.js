@@ -48,7 +48,7 @@ const NearbyDriver = ({driver}) => {
             !nameInput.value ||
             !phoneNumberInput.value
         ) return
-
+        
         setRideRequest({
             loading: driver._id,
             error: null,
@@ -60,7 +60,7 @@ const NearbyDriver = ({driver}) => {
         })
         
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/request-a-ride?pickupLocationLat=${pickupLocation.coords.lat}&pickupLocationLng=${pickupLocation.coords.lng}&destinationLat=${destination.coords.lat}&destinationLng=${destination.coords.lng}`, {
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/request-a-ride?pickupLocationLat=${pickupLocation.coords.lat}&pickupLocationLng=${pickupLocation.coords.lng}&destinationLat=${destination.coords.lat}&destinationLng=${destination.coords.lng}&pickupLocationAddress=${pickupLocation.inputValue}&destinationAddress=${destination.inputValue}`, {
                 name: nameInput.value,
                 phoneNumber: phoneNumberInput.value,
                 driverId: driver._id,

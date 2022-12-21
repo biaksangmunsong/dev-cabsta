@@ -75,9 +75,9 @@ const VehicleSelector = () => {
             // set price
             setVehicleType({
                 ...vehicleType,
-                price: vehicleType.type === "two-wheeler" ? res.data.price.twoWheeler : res.data.price.fourWheeler
+                price: res.data.price[vehicleType.type]
             })
-            
+
             setData({
                 init: true,
                 loading: false,
@@ -490,12 +490,12 @@ const VehicleSelector = () => {
                                 rounded-[6px]
                                 border-[2px]
                                 border-solid
-                                ${vehicleType.type === "two-wheeler" ? "border-[#8a2be2] bg-[#eeeeee]" : "border-[#cccccc] bg-[#ffffff]"}
+                                ${vehicleType.type === "two_wheeler" ? "border-[#8a2be2] bg-[#eeeeee]" : "border-[#cccccc] bg-[#ffffff]"}
                                 relative
                                 mb-[10px]
                             `} onClick={() => onVehicleTypeSelected({
-                                type: "two-wheeler",
-                                price: data.data.price.twoWheeler
+                                type: "two_wheeler",
+                                price: data.data.price.two_wheeler
                             })}>
                                 <div className="
                                     block
@@ -507,7 +507,7 @@ const VehicleSelector = () => {
                                     2xs:text-[20px]
                                     leading-[23px]
                                     2xs:leading-[25px]
-                                ">Two Wheeler - ₹{data.data.price.twoWheeler}</div>
+                                ">Two Wheeler - ₹{data.data.price.two_wheeler}</div>
                                 <div className="
                                     block
                                     w-full
@@ -541,11 +541,11 @@ const VehicleSelector = () => {
                                 rounded-[6px]
                                 border-[2px]
                                 border-solid
-                                ${vehicleType.type === "four-wheeler" ? "border-[#8a2be2] bg-[#eeeeee]" : "border-[#cccccc] bg-[#ffffff]"}
+                                ${vehicleType.type === "four_wheeler" ? "border-[#8a2be2] bg-[#eeeeee]" : "border-[#cccccc] bg-[#ffffff]"}
                                 relative
                             `} onClick={() => onVehicleTypeSelected({
-                                type: "four-wheeler",
-                                price: data.data.price.fourWheeler
+                                type: "four_wheeler",
+                                price: data.data.price.four_wheeler
                             })}>
                                 <div className="
                                     block
@@ -557,7 +557,7 @@ const VehicleSelector = () => {
                                     2xs:text-[20px]
                                     leading-[23px]
                                     2xs:leading-[25px]
-                                ">Four Wheeler - ₹{data.data.price.fourWheeler}</div>
+                                ">Four Wheeler - ₹{data.data.price.four_wheeler}</div>
                                 <div className="
                                     block
                                     w-full

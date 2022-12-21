@@ -1,12 +1,14 @@
 import { useEffect, useRef } from "react"
+import { useNavigate } from "react-router-dom"
 import useStore from "../store"
-import { useUserStore } from "../store"
+import { useUserStore, useInputStore } from "../store"
 import { io } from "socket.io-client"
 import { Haptics } from "@capacitor/haptics"
 
 const WebSocketHandler = () => {
-
-    const authToken = useUserStore(state => state.authToken)
+	
+	const navigate = useNavigate()
+	const authToken = useUserStore(state => state.authToken)
 	const rideRequest = useStore(state => state.rideRequest)
 	const rideRequestRef = useRef(rideRequest)
 	const setRideRequest = useStore(state => state.setRideRequest)
@@ -15,6 +17,7 @@ const WebSocketHandler = () => {
 	const setUaNearbyDrivers = useStore(state => state.setUaNearbyDrivers)
 	const removeUaNearbyDriver = useStore(state => state.removeUaNearbyDriver)
 	const nearbyDrivers = useStore(state => state.nearbyDrivers)
+	const onRideRequestAccepted = useInputStore(state => state.onRideRequestAccepted)
 	const nearbyDriversRef = useRef(nearbyDrivers)
 
 	useEffect(() => {
@@ -76,6 +79,10 @@ const WebSocketHandler = () => {
 						setRideRequest({ttl})
 					}
 				})
+				window.socket.on("ride-request-accepted", ride => {
+					window.acceptedRideRequestData = ride
+					navigate(`/history/${ride._id}`)
+				})
 			}
 		}
 		else {
@@ -84,9 +91,9 @@ const WebSocketHandler = () => {
 				window.socket = undefined
 			}
 		}
-	}, [authToken, setRideRequest, setRejectingDrivers, setUaNearbyDrivers, removeUaNearbyDriver, resetRideRequest])
-
-    return (<div className="hidden"></div>)
+	}, [authToken, setRideRequest, setRejectingDrivers, setUaNearbyDrivers, removeUaNearbyDriver, resetRideRequest, onRideRequestAccepted, navigate])
+	
+	return (<div className="hidden"></div>)
 
 }
 

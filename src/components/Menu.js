@@ -104,7 +104,7 @@ const Menu = () => {
                     relative
                     overflow-visible
                 ">
-                    <button type="button" className="
+                    <Link to="/history/63a2e45a607258574669125a" type="button" className="
                         inline-block
                         w-[40px]
                         h-[40px]
@@ -116,7 +116,7 @@ const Menu = () => {
                         p-[8px]
                     ">
                         <Bell color="#555555"/>
-                    </button>
+                    </Link>
                     <button type="button" className={`
                         inline-block
                         w-[40px]

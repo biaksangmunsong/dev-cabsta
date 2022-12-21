@@ -17,7 +17,8 @@ const store = set => ({
         defaultMapCenter: {
             lat: 24.3427,
             lng: 93.6978
-        }
+        },
+        defaultMapZoom: 16
     },
     
     networkStatus: -1,
@@ -211,7 +212,12 @@ const store = set => ({
                 }
             }
         })
-    })
+    }),
+
+    driversLiveLocation: null,
+    setDriversLiveLocation: data => set(() => ({
+        driversLiveLocation: data
+    }))
 })
 
 const hints = set => ({
@@ -230,7 +236,7 @@ const inputStore = set => ({
     setDistanceMatrix: data => set(() => ({distanceMatrix: data})),
 
     vehicleType: {
-        type: "two-wheeler",
+        type: "two_wheeler",
         price: 0
     },
     setVehicleType: data => set(() => ({vehicleType: data})),
@@ -252,7 +258,22 @@ const inputStore = set => ({
         destination: null,
         distanceMatrix: null,
         vehicleType: {
-            type: "two-wheeler",
+            type: "two_wheeler",
+            price: 0
+        },
+        name: {
+            prefilled: false,
+            value: ""
+        },
+        phoneNumber: {
+            prefilled: false,
+            value: ""
+        }
+    })),
+    onRideRequestAccepted: () => set(() => ({
+        distanceMatrix: null,
+        vehicleType: {
+            type: "two_wheeler",
             price: 0
         },
         name: {

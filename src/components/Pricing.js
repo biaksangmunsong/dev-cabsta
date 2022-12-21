@@ -76,8 +76,8 @@ const Pricing = () => {
     
     useEffect(() => {
         if (pricing.data){
-            setTwoWheelerPrice(rangeValue ? calculatePrice(rangeValue, pricing.data.basePrice, pricing.data.perKmPrice).twoWheeler : 0)
-            setFourWheelerPrice(rangeValue ? calculatePrice(rangeValue, pricing.data.basePrice, pricing.data.perKmPrice).fourWheeler : 0)
+            setTwoWheelerPrice(rangeValue ? calculatePrice(rangeValue, pricing.data.basePrice, pricing.data.perKmPrice).two_wheeler : 0)
+            setFourWheelerPrice(rangeValue ? calculatePrice(rangeValue, pricing.data.basePrice, pricing.data.perKmPrice).four_wheeler : 0)
         }
     }, [pricing.data, rangeValue])
     
@@ -520,7 +520,7 @@ const Pricing = () => {
                                 border-r
                                 border-solid
                                 border-[#111111]
-                            ">₹{pricing.data.basePrice.twoWheeler}</div>
+                            ">₹{pricing.data.basePrice.two_wheeler}</div>
                             <div className="
                                 inline-block
                                 align-middle
@@ -534,7 +534,7 @@ const Pricing = () => {
                                 2xs:text-[14px]
                                 leading-[20px]
                                 text-[#111111]
-                            ">₹{pricing.data.basePrice.fourWheeler}</div>
+                            ">₹{pricing.data.basePrice.four_wheeler}</div>
                         </div>
                     </div>
                     <h4 className="
@@ -637,7 +637,7 @@ const Pricing = () => {
                                             border-r
                                             border-solid
                                             border-[#111111]
-                                        ">₹{perKm.twoWheeler}/km</div>
+                                        ">₹{perKm.two_wheeler}/km</div>
                                         <div className="
                                             inline-block
                                             align-middle
@@ -651,7 +651,7 @@ const Pricing = () => {
                                             2xs:text-[14px]
                                             leading-[20px]
                                             text-[#111111]
-                                        ">₹{perKm.fourWheeler}/km</div>
+                                        ">₹{perKm.four_wheeler}/km</div>
                                     </div>
                                 )
                             })

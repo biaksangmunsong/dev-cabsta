@@ -13,6 +13,7 @@ import DestinationPin from "../images/destination-pin.png"
 import { Haptics } from "@capacitor/haptics"
 import getAddress from "../lib/getAddress"
 import LongRightArrow from "./icons/LongRightArrow"
+import LeftArrow from "./icons/LeftArrow"
 import CrossHair from "./icons/CrossHair"
 import StarIcon from "./icons/Star"
 import VehicleSelector from "./VehicleSelector"
@@ -616,8 +617,8 @@ const Editor = () => {
             if (!mapsRef.current){
                 // init maps
                 const center = staticData.defaultMapCenter
-                let zoom = 16
-
+                let zoom = staticData.defaultMapZoom
+                
                 const mapOptions = {
                     center,
                     zoom,
@@ -1274,6 +1275,25 @@ const Editor = () => {
                                 max-w-[1000px]
                                 mx-auto
                             ">
+                                <button type="button" className="
+                                    inline-block
+                                    align-middle
+                                    w-[30px]
+                                    2xs:w-[35px]
+                                    h-[30px]
+                                    2xs:h-[35px]
+                                    p-[6px]
+                                    rounded-[50%]
+                                    bg-[#ffffff]
+                                    border
+                                    border-solid
+                                    border-[#dddddd]
+                                    shadow-lg
+                                    active:bg-[#eeeeee]
+                                    mr-[6px]
+                                " onClick={() => window.history.back()}>
+                                    <LeftArrow color="#8a2be2"/>
+                                </button>
                                 <button type="button" className="
                                     inline-block
                                     align-middle
