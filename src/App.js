@@ -89,7 +89,8 @@ const App = () => {
             (location.pathname === "/choose-vehicle" && !locationQueries.includes("pricing-details")) ||
             locationQueries.includes("image-cropper") ||
             locationQueries.includes("edit-profile-photo") ||
-            (location.pathname === "/saved-places" && locationQueries.includes("prompt"))
+            (location.pathname === "/saved-places" && locationQueries.includes("prompt")) ||
+            location.pathname.startsWith("/history/")
         ){
             window.document.querySelector("meta[name='theme-color']").setAttribute("content", "#000000")
         }

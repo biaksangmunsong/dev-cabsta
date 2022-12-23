@@ -4,17 +4,14 @@ import axios from "axios"
 import { useParams } from "react-router-dom"
 import useStore from "../store"
 import { useUserStore } from "../store"
-import getDisplacementFromLatLonInMetres from "../lib/getDisplacementFromLatLonInMetres"
-import getTimeInMinutes from "../lib/getTimeInMinutes"
 import LeftArrow from "../components/icons/LeftArrow"
 import RippleThick from "../images/ripple-thick.gif"
 import PickupPin from "../images/pickup-pin.png"
 import DestinationPin from "../images/destination-pin.png"
-// import TwoWheelerPin from "../images/two-wheeler-pin.png"
-// import FourWheelerPin from "../images/four-wheeler-pin.png"
 import SadFace from "../components/icons/SadFace"
 import ChevronDown from "../components/icons/ChevronDown"
 import PhoneIcon from "../components/icons/Phone"
+import mpsToKmph from "../lib/mpsToKmph"
 
 const Ride = () => {
 
@@ -105,6 +102,18 @@ const Ride = () => {
         return () => {
             // cleanup function
             setDriversLiveLocation(null)
+            if (driversMarker.current){
+                driversMarker.current.setMap(null)
+                driversMarker.current = null
+            }
+            if (driversRippleMarker.current){
+                driversRippleMarker.current.setMap(null)
+                driversRippleMarker.current = null
+            }
+            if (driversInfoWindow.current){
+                driversInfoWindow.current.setMap(null)
+                driversInfoWindow.current = null
+            }
         }
     }, [setDriversLiveLocation])
     
@@ -245,24 +254,18 @@ const Ride = () => {
                     draggable: false
                 })
             }
-
+            
             // set info window for driver's marker
-            const displacementInMetres = getDisplacementFromLatLonInMetres(
-                driversLiveLocation.lat,
-                driversLiveLocation.lng,
-                data.data.details.pickupLocation.lat,
-                data.data.details.pickupLocation.lng
-            )
-            const timeInMinutes = getTimeInMinutes(15,displacementInMetres)
-            const infoWindowContent = `<div class="font-defaultRegular text-[#111111]">${timeInMinutes} Minute${timeInMinutes > 1 ? "s" : ""} Away</div>`
+            const kmph = mpsToKmph(driversLiveLocation.speed)
+            const driversInfoWindowContent = `<div class="font-defaultRegular text-[#111111]">${kmph}km/h</div>`
             if (!driversInfoWindow.current){
                 driversInfoWindow.current = new window.google.maps.InfoWindow({
-                    content: infoWindowContent
+                    content: driversInfoWindowContent
                 })
                 driversInfoWindow.current.open(mapsRef.current,driversMarker.current)
             }
             else {
-                driversInfoWindow.current.setContent(infoWindowContent)
+                driversInfoWindow.current.setContent(driversInfoWindowContent)
             }
             
             // make sure driver's marker is always visible on the screen even when it changes position
@@ -473,13 +476,16 @@ const Ride = () => {
                                 overflow-hidden
                                 relative
                                 pl-[130px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
                             `}>
                                 <div className="
                                     block
                                     w-[115px]
                                     absolute
-                                    top-1/2
-                                    -translate-y-1/2
+                                    top-0
                                     left-0
                                     font-defaultRegular
                                     text-left
@@ -491,7 +497,7 @@ const Ride = () => {
                                     block
                                     w-full
                                     capitalize
-                                    font-defaultRegular
+                                    font-defaultBold
                                     text-left
                                     text-[#444444]
                                     text-[12px]
@@ -502,7 +508,11 @@ const Ride = () => {
                                 ${locationQueries.includes("driver-details") ? "block" : "hidden"}
                                 w-full
                                 overflow-hidden
-                                mt-[5px]
+                                mt-[15px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
                                 relative
                                 pl-[130px]
                             `}>
@@ -510,8 +520,7 @@ const Ride = () => {
                                     block
                                     w-[115px]
                                     absolute
-                                    top-1/2
-                                    -translate-y-1/2
+                                    top-0
                                     left-0
                                     font-defaultRegular
                                     text-left
@@ -523,7 +532,7 @@ const Ride = () => {
                                     block
                                     w-full
                                     capitalize
-                                    font-defaultRegular
+                                    font-defaultBold
                                     text-left
                                     text-[#444444]
                                     text-[12px]
@@ -534,7 +543,11 @@ const Ride = () => {
                                 ${locationQueries.includes("driver-details") ? "block" : "hidden"}
                                 w-full
                                 overflow-hidden
-                                mt-[5px]
+                                mt-[15px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
                                 relative
                                 pl-[130px]
                             `}>
@@ -542,8 +555,7 @@ const Ride = () => {
                                     block
                                     w-[115px]
                                     absolute
-                                    top-1/2
-                                    -translate-y-1/2
+                                    top-0
                                     left-0
                                     font-defaultRegular
                                     text-left
@@ -555,7 +567,7 @@ const Ride = () => {
                                     block
                                     w-full
                                     capitalize
-                                    font-defaultRegular
+                                    font-defaultBold
                                     text-left
                                     text-[#444444]
                                     text-[12px]
@@ -566,7 +578,11 @@ const Ride = () => {
                                 ${locationQueries.includes("driver-details") ? "block" : "hidden"}
                                 w-full
                                 overflow-hidden
-                                mt-[5px]
+                                mt-[15px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
                                 relative
                                 pl-[130px]
                             `}>
@@ -574,8 +590,7 @@ const Ride = () => {
                                     block
                                     w-[115px]
                                     absolute
-                                    top-1/2
-                                    -translate-y-1/2
+                                    top-0
                                     left-0
                                     font-defaultRegular
                                     text-left
@@ -587,7 +602,7 @@ const Ride = () => {
                                     block
                                     w-full
                                     capitalize
-                                    font-defaultRegular
+                                    font-defaultBold
                                     text-left
                                     text-[#444444]
                                     text-[12px]
@@ -598,7 +613,11 @@ const Ride = () => {
                                 ${locationQueries.includes("driver-details") ? "block" : "hidden"}
                                 w-full
                                 overflow-hidden
-                                mt-[5px]
+                                mt-[15px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
                                 relative
                                 pl-[130px]
                             `}>
@@ -606,8 +625,7 @@ const Ride = () => {
                                     block
                                     w-[115px]
                                     absolute
-                                    top-1/2
-                                    -translate-y-1/2
+                                    top-0
                                     left-0
                                     font-defaultRegular
                                     text-left
@@ -619,12 +637,152 @@ const Ride = () => {
                                     block
                                     w-full
                                     capitalize
-                                    font-defaultRegular
+                                    font-defaultBold
                                     text-left
                                     text-[#444444]
                                     text-[12px]
                                     2xs:text-[14px]
                                 ">{data.data.details.driver.vehicle.numberPlate}</div>
+                            </div>
+                            <div className={`
+                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
+                                w-full
+                                overflow-hidden
+                                mt-[15px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
+                                relative
+                                pl-[130px]
+                            `}>
+                                <div className="
+                                    block
+                                    w-[115px]
+                                    absolute
+                                    top-0
+                                    left-0
+                                    font-defaultRegular
+                                    text-left
+                                    text-[#444444]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">Price<span className="float-right">:</span></div>
+                                <div className="
+                                    block
+                                    w-full
+                                    capitalize
+                                    font-defaultBold
+                                    text-left
+                                    text-[#444444]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">₹{data.data.details.price}</div>
+                            </div>
+                            <div className={`
+                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
+                                w-full
+                                overflow-hidden
+                                mt-[15px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
+                                relative
+                                pl-[130px]
+                            `}>
+                                <div className="
+                                    block
+                                    w-[115px]
+                                    absolute
+                                    top-0
+                                    left-0
+                                    font-defaultRegular
+                                    text-left
+                                    text-[#444444]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">Distance<span className="float-right">:</span></div>
+                                <div className="
+                                    block
+                                    w-full
+                                    capitalize
+                                    font-defaultBold
+                                    text-left
+                                    text-[#444444]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">{data.data.details.distance.text}</div>
+                            </div>
+                            <div className={`
+                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
+                                w-full
+                                overflow-hidden
+                                mt-[15px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
+                                relative
+                                pl-[130px]
+                            `}>
+                                <div className="
+                                    block
+                                    w-[115px]
+                                    absolute
+                                    top-0
+                                    left-0
+                                    font-defaultRegular
+                                    text-left
+                                    text-[#444444]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">From<span className="float-right">:</span></div>
+                                <div className="
+                                    block
+                                    w-full
+                                    capitalize
+                                    font-defaultBold
+                                    text-left
+                                    text-[#444444]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">{data.data.details.pickupLocation.address}</div>
+                            </div>
+                            <div className={`
+                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
+                                w-full
+                                overflow-hidden
+                                mt-[15px]
+                                border-b
+                                border-dashed
+                                border-[#bbbbbb]
+                                pb-[15px]
+                                relative
+                                pl-[130px]
+                            `}>
+                                <div className="
+                                    block
+                                    w-[115px]
+                                    absolute
+                                    top-0
+                                    left-0
+                                    font-defaultRegular
+                                    text-left
+                                    text-[#444444]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">To<span className="float-right">:</span></div>
+                                <div className="
+                                    block
+                                    w-full
+                                    capitalize
+                                    font-defaultBold
+                                    text-left
+                                    text-[#444444]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">{data.data.details.destination.address}</div>
                             </div>
                         </> : ""
                     }
@@ -697,8 +855,8 @@ const Ride = () => {
                         <div className="
                             block
                             w-full
-                            h-[45px]
-                            bg-[red]
+                            h-0
+                            overflow-visible
                             absolute
                             z-[20]
                             top-[65px]
@@ -714,15 +872,38 @@ const Ride = () => {
                                 <div className="
                                     inline-block
                                     align-middle
-                                    leading-[45px]
-                                    rounded-[25px]
+                                    leading-[30px]
+                                    rounded-[20px]
                                     px-[15px]
                                     bg-[#ffffff]
                                     shadow-xl
                                     border
                                     border-solid
                                     border-[#dddddd]
-                                ">{data.data.details.price}</div>
+                                    font-defaultBold
+                                    text-center
+                                    text-[#8a2be2]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                ">₹{data.data.details.price}</div>
+                                <div className="
+                                    inline-block
+                                    align-middle
+                                    leading-[30px]
+                                    rounded-[20px]
+                                    px-[15px]
+                                    bg-[#ffffff]
+                                    shadow-xl
+                                    border
+                                    border-solid
+                                    border-[#dddddd]
+                                    font-defaultBold
+                                    text-center
+                                    text-[#8a2be2]
+                                    text-[12px]
+                                    2xs:text-[14px]
+                                    ml-[5px]
+                                ">{data.data.details.distance.text}</div>
                             </div>
                         </div>
                         {
@@ -732,7 +913,7 @@ const Ride = () => {
                                 w-full
                                 absolute
                                 z-[30]
-                                bottom-[99px]
+                                bottom-[98px]
                                 left-0
                                 bg-[#ffffff]
                                 overflow-hidden

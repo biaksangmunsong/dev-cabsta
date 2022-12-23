@@ -468,7 +468,7 @@ const Editor = () => {
                 icon: PickupPin,
                 draggable: true
             })
-
+            
             // add marker dragend listener
             pickupMarker.current.addListener("dragend", async data => {
                 const location = {
@@ -776,6 +776,7 @@ const Editor = () => {
                     createPickupMarker()
                     if (activeInput === "pickup" && shouldAutoSetMapCenter.current){
                         mapsRef.current.setCenter(pickupLocation.coords)
+                        mapsRef.current.setZoom(18)
                     }
                 }
             }
@@ -818,6 +819,7 @@ const Editor = () => {
                     createDestinationMarker()
                     if (activeInput === "destination" && shouldAutoSetMapCenter.current){
                         mapsRef.current.setCenter(destination.coords)
+                        mapsRef.current.setZoom(18)
                     }
                 }
             }
@@ -842,11 +844,13 @@ const Editor = () => {
         if (activeInput === "pickup" && pickupLocationRef.current){
             if (mapsRef.current){
                 mapsRef.current.setCenter(pickupLocationRef.current.coords)
+                mapsRef.current.setZoom(18)
             }
         }
         else if (activeInput === "destination" && destinationRef.current){
             if (mapsRef.current){
                 mapsRef.current.setCenter(destinationRef.current.coords)
+                mapsRef.current.setZoom(18)
             }
         }
     }, [activeInput])
