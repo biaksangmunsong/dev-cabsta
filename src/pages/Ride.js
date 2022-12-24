@@ -22,6 +22,7 @@ const Ride = () => {
         error: null,
         data: null
     })
+    const [ cancelling, setCancelling ] = useState(false)
     const initiated = useRef(false)
     const mapsRef = useRef(null)
     const mapsContainerRef = useRef(null)
@@ -91,6 +92,46 @@ const Ride = () => {
             })
         }
     }, [data.loading, authToken, resetUserData, params.rideId, setDriversLiveLocation])
+
+    const cancelRide = async () => {
+        if (cancelling || !data.data || data.data.status !== "initiated" || !authToken) return
+        
+        setCancelling(true)
+        
+        try {
+            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/cancel-ride`, {
+                rideId: data.data._id,
+                reason: "test"
+            }, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            })
+            setCancelling(false)
+            setData({
+                ...data,
+                data: {
+                    ...data.data,
+                    status: "cancelled"
+                }
+            })
+            setDriversLiveLocation(null)
+        }
+        catch (err){
+            setCancelling(false)
+            if (err && err.response && err.response.data && err.response.data.code){
+                if (err.response.data.code === "credential-expired"){
+                    // alert user that they have to reauthenticate and sign out
+                    alert(err.response.data.message)
+                    return resetUserData()
+                }
+            }
+            const confirmation = window.confirm(`${(err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong"}. Try again?`)
+            if (confirmation){
+                cancelRide()
+            }
+        }
+    }
     
     useEffect(() => {
         if (!authToken){
@@ -136,7 +177,7 @@ const Ride = () => {
     
     // load maps when data is ready and google maps script is loaded
     useEffect(() => {
-        if (googleMapsScriptLoaded && data.data && !mapsRef.current && mapsContainerRef.current){
+        if (googleMapsScriptLoaded && data.data && data.data.status === "initiated" && !mapsRef.current && mapsContainerRef.current){
             // init maps
             const center = {
                 lat: data.data.details.pickupLocation.lat,
@@ -221,7 +262,7 @@ const Ride = () => {
     }, [googleMapsScriptLoaded, data.data])
 
     useEffect(() => {
-        if (googleMapsScriptLoaded && data.data && driversLiveLocation && mapsRef.current){
+        if (googleMapsScriptLoaded && data.data && data.data.status === "initiated" && driversLiveLocation && mapsRef.current){
             // add or move driver's live location marker
             if (driversRippleMarker.current){
                 driversRippleMarker.current.setPosition(driversLiveLocation)
@@ -302,6 +343,39 @@ const Ride = () => {
             scrollableArea.current.scrollTo(0,0)
         }
     }, [locationQueries])
+
+    useEffect(() => {
+        if (locationQueries.includes("driver-details") && data.data && data.data.status !== "initiated"){
+            window.history.back()
+        }
+    }, [locationQueries, data.data])
+
+    useEffect(() => {
+        if (data.data){
+            if (window.socket && window.socket.connected){
+                window.socket.removeAllListeners("drivers-live-location")
+                window.socket.removeAllListeners("ride-cancelled")
+
+                window.socket.on("drivers-live-location", location => {
+                    if (window.location.pathname.startsWith("/history/")){
+                        setDriversLiveLocation(location)
+                    }
+                })
+                window.socket.on("ride-cancelled", rideId => {
+                    if (window.location.pathname.startsWith(`/history/${rideId}`)){
+                        setData({
+                            ...data,
+                            data: {
+                                ...data.data,
+                                status: "cancelled"
+                            }
+                        })
+                        setDriversLiveLocation(null)
+                    }
+                })
+            }
+        }
+    }, [data, setDriversLiveLocation])
     
     return (
         <div className={`page`}>
@@ -358,7 +432,7 @@ const Ride = () => {
                         <LeftArrow color="#111111"/>
                     </button>
                     {
-                        data.data ?
+                        (data.data && data.data.status === "initiated") ?
                         <>
                             <Link to="?driver-details" className={`
                                 relative
@@ -405,23 +479,18 @@ const Ride = () => {
                                         leading-[14px]
                                         ${!locationQueries.includes("driver-details") ? "overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-[14px]" : "text-[12px] 2xs:text-[14px]"}
                                     `}>
-                                        {
-                                            data.data.status === "initiated" ?
-                                            <>
-                                                <span className={`
-                                                    inline-block
-                                                    align-middle
-                                                    ${locationQueries.includes("driver-details") ? "w-[15px] h-[15px] mr-[5px]" : "w-[10px] h-[10px] mr-[3px]"}
-                                                    rounded-[50%]
-                                                    bg-[#bb0000]
-                                                    pulse-dot
-                                                `}></span>
-                                                <span className="
-                                                    inline-block
-                                                    align-middle
-                                                ">On {data.data.details.driver.gender === "male" ? "his" : "her"} way</span>
-                                            </> : ""
-                                        }
+                                        <span className={`
+                                            inline-block
+                                            align-middle
+                                            ${locationQueries.includes("driver-details") ? "w-[15px] h-[15px] mr-[5px]" : "w-[10px] h-[10px] mr-[3px]"}
+                                            rounded-[50%]
+                                            bg-[#bb0000]
+                                            pulse-dot
+                                        `}></span>
+                                        <span className="
+                                            inline-block
+                                            align-middle
+                                        ">On {data.data.details.driver.gender === "male" ? "his" : "her"} way</span>
                                     </div>
                                 </div>
                                 {
@@ -792,7 +861,7 @@ const Ride = () => {
                 block
                 w-full
                 h-full
-                overflow-auto
+                overflow-hidden
             ">
                 {
                     data.error ?
@@ -842,167 +911,190 @@ const Ride = () => {
                 }
                 {
                     data.data ?
-                    <div className={`
-                        block
-                        w-full
-                        h-full
-                        ${driversLiveLocation ? "pb-[100px]" : "pb-[140px]"}
-                        relative
-                        z-[10]
-                        duration-[.2]
-                        ease-in-out
-                    `}>
-                        <div className="
-                            block
-                            w-full
-                            h-0
-                            overflow-visible
-                            absolute
-                            z-[20]
-                            top-[65px]
-                            left-0
-                        ">
-                            <div className="
-                                block
-                                w-[94%]
-                                max-w-[1000px]
-                                mx-auto
-                                text-left
-                            ">
-                                <div className="
-                                    inline-block
-                                    align-middle
-                                    leading-[30px]
-                                    rounded-[20px]
-                                    px-[15px]
-                                    bg-[#ffffff]
-                                    shadow-xl
-                                    border
-                                    border-solid
-                                    border-[#dddddd]
-                                    font-defaultBold
-                                    text-center
-                                    text-[#8a2be2]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">₹{data.data.details.price}</div>
-                                <div className="
-                                    inline-block
-                                    align-middle
-                                    leading-[30px]
-                                    rounded-[20px]
-                                    px-[15px]
-                                    bg-[#ffffff]
-                                    shadow-xl
-                                    border
-                                    border-solid
-                                    border-[#dddddd]
-                                    font-defaultBold
-                                    text-center
-                                    text-[#8a2be2]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                    ml-[5px]
-                                ">{data.data.details.distance.text}</div>
-                            </div>
-                        </div>
+                    <>
                         {
-                            !driversLiveLocation ?
-                            <div className="
+                            data.data.status === "initiated" ?
+                            <div className={`
                                 block
                                 w-full
-                                absolute
-                                z-[30]
-                                bottom-[98px]
-                                left-0
-                                bg-[#ffffff]
-                                overflow-hidden
-                            ">
+                                h-full
+                                ${driversLiveLocation ? "pb-[100px]" : "pb-[140px]"}
+                                relative
+                                z-[10]
+                                duration-[.2]
+                                ease-in-out
+                            `}>
                                 <div className="
                                     block
-                                    w-[94%]
-                                    max-w-[1000px]
-                                    mx-auto
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#111111]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                    leading-[40px]
-                                ">Waiting for driver's live location...</div>
-                                <div className="
-                                    block
-                                    w-[300%]
-                                    h-[3px]
+                                    w-full
+                                    h-0
+                                    overflow-visible
                                     absolute
-                                    top-0
+                                    z-[20]
+                                    top-[65px]
                                     left-0
-                                    -translate-x-[60%]
-                                    bg-no-repeat
-                                    bg-cover
-                                    bg-center
-                                " style={{backgroundImage: `url(${RippleThick})`}}></div>
-                            </div> : ""
-                        }
-                        <div className="
-                            block
-                            w-full
-                            h-full
-                            bg-[#dddddd]
-                            relative
-                            z-[10]
-                        " ref={mapsContainerRef}></div>
-                        <div className="
-                            block
-                            w-full
-                            h-[100px]
-                            pt-[6px]
-                            bg-[#ffffff]
-                            absolute
-                            z-[20]
-                            bottom-0
-                            left-0
-                            border-t
-                            border-solid
-                            border-[#bbbbbb]
-                        ">
-                            <div className="
-                                grid
-                                grid-cols-2
-                                gap-[6px]
-                                w-[94%]
-                                max-w-[1000px]
-                                mx-auto
-                            ">
-                                <a href={`tel:${data.data.details.driver.phoneNumber}`} target="_blank" rel="noopener noreferrer" className={`
+                                ">
+                                    <div className="
+                                        block
+                                        w-[94%]
+                                        max-w-[1000px]
+                                        mx-auto
+                                        text-left
+                                    ">
+                                        <div className="
+                                            inline-block
+                                            align-middle
+                                            leading-[30px]
+                                            rounded-[20px]
+                                            px-[15px]
+                                            bg-[#ffffff]
+                                            shadow-xl
+                                            border
+                                            border-solid
+                                            border-[#dddddd]
+                                            font-defaultBold
+                                            text-center
+                                            text-[#8a2be2]
+                                            text-[12px]
+                                            2xs:text-[14px]
+                                        ">₹{data.data.details.price}</div>
+                                        <div className="
+                                            inline-block
+                                            align-middle
+                                            leading-[30px]
+                                            rounded-[20px]
+                                            px-[15px]
+                                            bg-[#ffffff]
+                                            shadow-xl
+                                            border
+                                            border-solid
+                                            border-[#dddddd]
+                                            font-defaultBold
+                                            text-center
+                                            text-[#8a2be2]
+                                            text-[12px]
+                                            2xs:text-[14px]
+                                            ml-[5px]
+                                        ">{data.data.details.distance.text}</div>
+                                    </div>
+                                </div>
+                                {
+                                    !driversLiveLocation ?
+                                    <div className="
+                                        block
+                                        w-full
+                                        absolute
+                                        z-[30]
+                                        bottom-[98px]
+                                        left-0
+                                        bg-[#ffffff]
+                                        overflow-hidden
+                                    ">
+                                        <div className="
+                                            block
+                                            w-[94%]
+                                            max-w-[1000px]
+                                            mx-auto
+                                            font-defaultRegular
+                                            text-left
+                                            text-[#111111]
+                                            text-[12px]
+                                            2xs:text-[14px]
+                                            leading-[40px]
+                                        ">Waiting for driver's live location...</div>
+                                        <div className="
+                                            block
+                                            w-[300%]
+                                            h-[3px]
+                                            absolute
+                                            top-0
+                                            left-0
+                                            -translate-x-[60%]
+                                            bg-no-repeat
+                                            bg-cover
+                                            bg-center
+                                        " style={{backgroundImage: `url(${RippleThick})`}}></div>
+                                    </div> : ""
+                                }
+                                <div className="
+                                    block
                                     w-full
-                                    leading-[50px]
-                                    font-defaultBold
-                                    text-center
-                                    text-[13px]
-                                    2xs:text-[15px]
-                                    text-[#ffffff]
-                                    bg-[#111111]
-                                    active:bg-[#444444]
-                                    rounded-[25px]
-                                `}>Call Driver</a>
-                                <button type="button" className={`
+                                    h-full
+                                    bg-[#dddddd]
+                                    relative
+                                    z-[10]
+                                " ref={mapsContainerRef}></div>
+                                <div className="
+                                    block
                                     w-full
-                                    h-[50px]
-                                    font-defaultBold
-                                    text-center
-                                    text-[13px]
-                                    2xs:text-[15px]
-                                    text-[#cd5c5c]
-                                    active:bg-[#dddddd]
-                                    rounded-[25px]
-                                    border-[2px]
+                                    h-[100px]
+                                    overflow-hidden
+                                    pt-[9px]
+                                    bg-[#ffffff]
+                                    absolute
+                                    z-[20]
+                                    bottom-0
+                                    left-0
+                                    border-t
                                     border-solid
-                                    border-[#cd5c5c]
-                                `}>Cancel</button>
-                            </div>
-                        </div>
-                    </div> : ""
+                                    border-[#bbbbbb]
+                                ">
+                                    {
+                                        cancelling ?
+                                        <div className="
+                                            block
+                                            w-[300%]
+                                            h-[3px]
+                                            absolute
+                                            top-0
+                                            left-0
+                                            -translate-x-[60%]
+                                            bg-no-repeat
+                                            bg-cover
+                                            bg-center
+                                        " style={{backgroundImage: `url(${RippleThick})`}}></div> : ""
+                                    }
+                                    <div className="
+                                        grid
+                                        grid-cols-2
+                                        gap-[6px]
+                                        w-[94%]
+                                        max-w-[1000px]
+                                        mx-auto
+                                    ">
+                                        <a href={`tel:${data.data.details.driver.phoneNumber}`} target="_blank" rel="noopener noreferrer" className={`
+                                            w-full
+                                            leading-[50px]
+                                            font-defaultBold
+                                            text-center
+                                            text-[13px]
+                                            2xs:text-[15px]
+                                            text-[#ffffff]
+                                            bg-[#111111]
+                                            active:bg-[#444444]
+                                            rounded-[25px]
+                                        `}>Call Driver</a>
+                                        <button type="button" className={`
+                                            w-full
+                                            h-[50px]
+                                            font-defaultBold
+                                            text-center
+                                            text-[13px]
+                                            2xs:text-[15px]
+                                            text-[#cd5c5c]
+                                            active:bg-[#dddddd]
+                                            rounded-[25px]
+                                            border-[2px]
+                                            border-solid
+                                            border-[#cd5c5c]
+                                            ${cancelling ? "opacity-[.5]" : ""}
+                                        `} onClick={cancelRide}>Cancel</button>
+                                    </div>
+                                </div>
+                            </div> :
+                            <div>{data.data.status}</div>
+                        }
+                    </> : ""
                 }
             </div>
         </div>

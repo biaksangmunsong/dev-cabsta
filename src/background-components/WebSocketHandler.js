@@ -17,7 +17,6 @@ const WebSocketHandler = () => {
 	const setUaNearbyDrivers = useStore(state => state.setUaNearbyDrivers)
 	const removeUaNearbyDriver = useStore(state => state.removeUaNearbyDriver)
 	const nearbyDrivers = useStore(state => state.nearbyDrivers)
-	const setDriversLiveLocation = useStore(state => state.setDriversLiveLocation)
 	const onRideRequestAccepted = useInputStore(state => state.onRideRequestAccepted)
 	const nearbyDriversRef = useRef(nearbyDrivers)
 
@@ -84,9 +83,6 @@ const WebSocketHandler = () => {
 					window.acceptedRideRequestData = ride
 					navigate(`/history/${ride._id}`)
 				})
-				window.socket.on("drivers-live-location", location => {
-					setDriversLiveLocation(location)
-				})
 			}
 		}
 		else {
@@ -95,7 +91,7 @@ const WebSocketHandler = () => {
 				window.socket = undefined
 			}
 		}
-	}, [authToken, setRideRequest, setRejectingDrivers, setUaNearbyDrivers, removeUaNearbyDriver, resetRideRequest, onRideRequestAccepted, navigate, setDriversLiveLocation])
+	}, [authToken, setRideRequest, setRejectingDrivers, setUaNearbyDrivers, removeUaNearbyDriver, resetRideRequest, onRideRequestAccepted, navigate])
 	
 	return (<div className="hidden"></div>)
 
