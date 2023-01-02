@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import TextareaAutosize from "react-textarea-autosize"
 import LeftArrow from "./icons/LeftArrow"
 import Check from "./icons/Check"
@@ -8,7 +8,7 @@ const CancellationPrompt = ({data}) => {
 
     const [ selectedReason, setSelectedReason ] = useState("")
     const [ otherReason, setOtherReason ] = useState("")
-    const [ reason, setReason ] = useState("")
+    // const [ reason, setReason ] = useState("")
     const otherReasonInputRef = useRef(null)
     
     const onReasonClick = r => {
