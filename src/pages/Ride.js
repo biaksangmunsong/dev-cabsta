@@ -4,6 +4,7 @@ import axios from "axios"
 import { useParams } from "react-router-dom"
 import useStore from "../store"
 import { useUserStore } from "../store"
+import CancellationPrompt from "../components/CancellationPrompt"
 import LeftArrow from "../components/icons/LeftArrow"
 import RippleThick from "../images/ripple-thick.gif"
 import PickupPin from "../images/pickup-pin.png"
@@ -22,7 +23,6 @@ const Ride = () => {
         error: null,
         data: null
     })
-    const [ cancelling, setCancelling ] = useState(false)
     const initiated = useRef(false)
     const mapsRef = useRef(null)
     const mapsContainerRef = useRef(null)
@@ -93,45 +93,45 @@ const Ride = () => {
         }
     }, [data.loading, authToken, resetUserData, params.rideId, setDriversLiveLocation])
 
-    const cancelRide = async () => {
-        if (cancelling || !data.data || data.data.status !== "initiated" || !authToken) return
+    // const cancelRide = async () => {
+    //     if (cancelling || !data.data || data.data.status !== "initiated" || !authToken) return
         
-        setCancelling(true)
+    //     setCancelling(true)
         
-        try {
-            await axios.post(`${process.env.REACT_APP_API_BASE_URL}/cancel-ride`, {
-                rideId: data.data._id,
-                reason: "test"
-            }, {
-                headers: {
-                    Authorization: `Bearer ${authToken}`
-                }
-            })
-            setCancelling(false)
-            setData({
-                ...data,
-                data: {
-                    ...data.data,
-                    status: "cancelled"
-                }
-            })
-            setDriversLiveLocation(null)
-        }
-        catch (err){
-            setCancelling(false)
-            if (err && err.response && err.response.data && err.response.data.code){
-                if (err.response.data.code === "credential-expired"){
-                    // alert user that they have to reauthenticate and sign out
-                    alert(err.response.data.message)
-                    return resetUserData()
-                }
-            }
-            const confirmation = window.confirm(`${(err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong"}. Try again?`)
-            if (confirmation){
-                cancelRide()
-            }
-        }
-    }
+    //     try {
+    //         await axios.post(`${process.env.REACT_APP_API_BASE_URL}/cancel-ride`, {
+    //             rideId: data.data._id,
+    //             reason: "test"
+    //         }, {
+    //             headers: {
+    //                 Authorization: `Bearer ${authToken}`
+    //             }
+    //         })
+    //         setCancelling(false)
+    //         setData({
+    //             ...data,
+    //             data: {
+    //                 ...data.data,
+    //                 status: "cancelled"
+    //             }
+    //         })
+    //         setDriversLiveLocation(null)
+    //     }
+    //     catch (err){
+    //         setCancelling(false)
+    //         if (err && err.response && err.response.data && err.response.data.code){
+    //             if (err.response.data.code === "credential-expired"){
+    //                 // alert user that they have to reauthenticate and sign out
+    //                 alert(err.response.data.message)
+    //                 return resetUserData()
+    //             }
+    //         }
+    //         const confirmation = window.confirm(`${(err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong"}. Try again?`)
+    //         if (confirmation){
+    //             cancelRide()
+    //         }
+    //     }
+    // }
     
     useEffect(() => {
         if (!authToken){
@@ -379,6 +379,12 @@ const Ride = () => {
     
     return (
         <div className={`page`}>
+            {
+                (locationQueries.includes("cancel") && data.data) ?
+                <CancellationPrompt
+                    data={data.data}
+                /> : ""
+            }
             <div className={`
                 block
                 w-full
@@ -1039,21 +1045,6 @@ const Ride = () => {
                                     border-solid
                                     border-[#bbbbbb]
                                 ">
-                                    {
-                                        cancelling ?
-                                        <div className="
-                                            block
-                                            w-[300%]
-                                            h-[3px]
-                                            absolute
-                                            top-0
-                                            left-0
-                                            -translate-x-[60%]
-                                            bg-no-repeat
-                                            bg-cover
-                                            bg-center
-                                        " style={{backgroundImage: `url(${RippleThick})`}}></div> : ""
-                                    }
                                     <div className="
                                         grid
                                         grid-cols-2
@@ -1074,9 +1065,9 @@ const Ride = () => {
                                             active:bg-[#444444]
                                             rounded-[25px]
                                         `}>Call Driver</a>
-                                        <button type="button" className={`
+                                        <Link to="?cancel" className={`
                                             w-full
-                                            h-[50px]
+                                            leading-[50px]
                                             font-defaultBold
                                             text-center
                                             text-[13px]
@@ -1087,8 +1078,7 @@ const Ride = () => {
                                             border-[2px]
                                             border-solid
                                             border-[#cd5c5c]
-                                            ${cancelling ? "opacity-[.5]" : ""}
-                                        `} onClick={cancelRide}>Cancel</button>
+                                        `}>Cancel</Link>
                                     </div>
                                 </div>
                             </div> :
