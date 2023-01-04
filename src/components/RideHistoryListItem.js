@@ -1,10 +1,13 @@
+import { Link } from "react-router-dom"
+
 const RideHistoryListItem = ({data}) => {
 
     return (
-        <div className="
+        <Link to={`/history/${data._id}`} className="
             block
             w-full
-        ">{data.details.pickupLocation.address}</div>
+            mb-[20px]
+        ">{data.details.pickupLocation.address}</Link>
     )
 
 }

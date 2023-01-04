@@ -13,7 +13,7 @@ import RippleThick from "../images/ripple-thick.gif"
 
 const History = () => {
 
-    const [ prompt, setPrompt ] = useState(null)
+    const [ prompt ] = useState(null)
     const rideHistory = useStore(state => state.rideHistory)
     const setRideHistory = useStore(state => state.setRideHistory)
     const authToken = useUserStore(state => state.authToken)
