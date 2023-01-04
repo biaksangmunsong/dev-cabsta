@@ -18,6 +18,7 @@ import SavedPlaces from "./pages/SavedPlaces"
 import ChangePhoneNumber from "./pages/ChangePhoneNumber"
 import PricingPage from "./pages/PricingPage"
 import Request from "./pages/Request"
+import History from "./pages/History"
 
 // import components
 import OfflineBanner from "./components/OfflineBanner"
@@ -42,6 +43,7 @@ const App = () => {
     const resetProfileForm = useStore(state => state.resetProfileForm)
     const resetNewPlaceForm = useStore(state => state.resetNewPlaceForm)
     const resetSavedPlaces = useStore(state => state.resetSavedPlaces)
+    const resetRideHistory = useStore(state => state.resetRideHistory)
     const resetPricing = useStore(state => state.resetPricing)
     const resetNotResponsiveDrivers = useStore(state => state.resetNotResponsiveDrivers)
     const resetUaNearbyDrivers = useStore(state => state.resetUaNearbyDrivers)
@@ -181,6 +183,7 @@ const App = () => {
             resetNewPlaceForm()
             clearInputStore()
             resetSavedPlaces()
+            resetRideHistory()
             resetPricing()
             resetNearbyDrivers()
             resetRejectingDrivers()
@@ -189,7 +192,7 @@ const App = () => {
             resetRideRequest()
             setDriversLiveLocation(null)
         }
-    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetPricing, resetRejectingDrivers, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest, setDriversLiveLocation])
+    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetRideHistory, resetPricing, resetRejectingDrivers, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest, setDriversLiveLocation])
     
     return (
         <div className={`
@@ -234,6 +237,9 @@ const App = () => {
                 }/>
                 <Route path="/signin/:phone" element={
                     <SignIn/>
+                }/>
+                <Route path="/history" element={
+                    <History/>
                 }/>
                 <Route path="/history/:rideId" element={
                     <Ride/>

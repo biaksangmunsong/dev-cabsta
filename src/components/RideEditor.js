@@ -9,6 +9,7 @@ import XIcon from "./icons/XIcon"
 import "../styles/places_autocomplete.css"
 import PickupPin from "../images/pickup-pin.png"
 import Spinner from "../images/spinner.gif"
+import RippleThick from "../images/ripple-thick.gif"
 import DestinationPin from "../images/destination-pin.png"
 import { Haptics } from "@capacitor/haptics"
 import getAddress from "../lib/getAddress"
@@ -738,88 +739,128 @@ const Editor = () => {
             const queries = query.split("&")
             navigate("/set-location", {replace: true})
 
-            if (
-                query.startsWith("?pickup&lat=") &&
-                query.includes("&lat=") &&
-                query.includes("&lng=") &&
-                query.includes("&address=")
-            ){
-                // get data from query
-                let lat, lng, address
-                queries.forEach(q => {
-                    if (q.startsWith("lat=") && !lat){
-                        lat = Number(q.split("=")[1]) || 0
-                    }
-                    if (q.startsWith("lng=") && !lng){
-                        lng = Number(q.split("=")[1]) || 0
-                    }
-                    if (q.startsWith("address=") && !address){
-                        address = decodeURI(q.split("=")[1])
-                    }
-                })
-                
+            if (window.rideInputAutofill){
+                const pickupData = window.rideInputAutofill.pickupLocation
+                const destinationData = window.rideInputAutofill.destination
+                window.rideInputAutofill = undefined
+
+                // set pickup location
                 if (pickupInputRef.current){
-                    pickupInputRef.current.value = address
-                    setPickupLocationInput(address)
+                    pickupInputRef.current.value = pickupData.address
+                    setPickupLocationInput(pickupData.address)
                     const pl = {
-                        inputValue: address,
-                        coords: {lat,lng},
-                        formatted_address: address
+                        inputValue: pickupData.address,
+                        coords: {
+                            lat: pickupData.lat,
+                            lng: pickupData.lng
+                        },
+                        formatted_address: pickupData.address
                     }
                     setPickupLocation(pl)
                     pickupLocationRef.current = pl
                     setActiveInput("pickup")
                 }
-            }
-            else {
-                if (pickupLocation && !pickupMarker.current && mapsRef.current){
-                    createPickupMarker()
-                    if (activeInput === "pickup" && shouldAutoSetMapCenter.current){
-                        mapsRef.current.setCenter(pickupLocation.coords)
-                        mapsRef.current.setZoom(18)
-                    }
-                }
-            }
 
-            if (
-                query.startsWith("?destination&lat=") &&
-                query.includes("&lat=") &&
-                query.includes("&lng=") &&
-                query.includes("&address=")
-            ){
-                // get data from query
-                let lat, lng, address
-                queries.forEach(q => {
-                    if (q.startsWith("lat=") && !lat){
-                        lat = Number(q.split("=")[1]) || 0
-                    }
-                    if (q.startsWith("lng=") && !lng){
-                        lng = Number(q.split("=")[1]) || 0
-                    }
-                    if (q.startsWith("address=") && !address){
-                        address = decodeURI(q.split("=")[1])
-                    }
-                })
-                
+                // set destination
                 if (destinationInputRef.current){
-                    destinationInputRef.current.value = address
-                    setDestinationInput(address)
+                    destinationInputRef.current.value = destinationData.address
+                    setDestinationInput(destinationData.address)
                     const ds = {
-                        inputValue: address,
-                        coords: {lat,lng},
-                        formatted_address: address
+                        inputValue: destinationData.address,
+                        coords: {
+                            lat: destinationData.lat,
+                            lng: destinationData.lng
+                        },
+                        formatted_address: destinationData.address
                     }
                     setDestination(ds)
                     destinationRef.current = ds
-                    setActiveInput("destination")
                 }
             }
             else {
-                if (destination && !destinationMarker.current && mapsRef.current && !window.location.search.includes("destination=")){
-                    createDestinationMarker()
-                    if (activeInput === "destination" && shouldAutoSetMapCenter.current){
-                        mapsRef.current.setCenter(destination.coords)
-                        mapsRef.current.setZoom(18)
+                if (
+                    query.startsWith("?pickup&lat=") &&
+                    query.includes("&lat=") &&
+                    query.includes("&lng=") &&
+                    query.includes("&address=")
+                ){
+                    // get data from query
+                    let lat, lng, address
+                    queries.forEach(q => {
+                        if (q.startsWith("lat=") && !lat){
+                            lat = Number(q.split("=")[1]) || 0
+                        }
+                        if (q.startsWith("lng=") && !lng){
+                            lng = Number(q.split("=")[1]) || 0
+                        }
+                        if (q.startsWith("address=") && !address){
+                            address = decodeURI(q.split("=")[1])
+                        }
+                    })
+                    
+                    if (pickupInputRef.current){
+                        pickupInputRef.current.value = address
+                        setPickupLocationInput(address)
+                        const pl = {
+                            inputValue: address,
+                            coords: {lat,lng},
+                            formatted_address: address
+                        }
+                        setPickupLocation(pl)
+                        pickupLocationRef.current = pl
+                        setActiveInput("pickup")
+                    }
+                }
+                else {
+                    if (pickupLocation && !pickupMarker.current && mapsRef.current){
+                        createPickupMarker()
+                        if (activeInput === "pickup" && shouldAutoSetMapCenter.current){
+                            mapsRef.current.setCenter(pickupLocation.coords)
+                            mapsRef.current.setZoom(18)
+                        }
+                    }
+                }
+    
+                if (
+                    query.startsWith("?destination&lat=") &&
+                    query.includes("&lat=") &&
+                    query.includes("&lng=") &&
+                    query.includes("&address=")
+                ){
+                    // get data from query
+                    let lat, lng, address
+                    queries.forEach(q => {
+                        if (q.startsWith("lat=") && !lat){
+                            lat = Number(q.split("=")[1]) || 0
+                        }
+                        if (q.startsWith("lng=") && !lng){
+                            lng = Number(q.split("=")[1]) || 0
+                        }
+                        if (q.startsWith("address=") && !address){
+                            address = decodeURI(q.split("=")[1])
+                        }
+                    })
+                    
+                    if (destinationInputRef.current){
+                        destinationInputRef.current.value = address
+                        setDestinationInput(address)
+                        const ds = {
+                            inputValue: address,
+                            coords: {lat,lng},
+                            formatted_address: address
+                        }
+                        setDestination(ds)
+                        destinationRef.current = ds
+                        setActiveInput("destination")
+                    }
+                }
+                else {
+                    if (destination && !destinationMarker.current && mapsRef.current && !window.location.search.includes("destination=")){
+                        createDestinationMarker()
+                        if (activeInput === "destination" && shouldAutoSetMapCenter.current){
+                            mapsRef.current.setCenter(destination.coords)
+                            mapsRef.current.setZoom(18)
+                        }
                     }
                 }
             }
@@ -1497,24 +1538,24 @@ const Editor = () => {
                                         <div className="
                                             block
                                             w-full
-                                            py-[20px]
+                                            h-[3px]
+                                            relative
+                                            overflow-hidden
                                         ">
-                                            <img src={Spinner} alt="" className="
-                                                block
-                                                w-[35px]
-                                                h-[35px]
-                                                mx-auto
-                                                mb-[5px]
-                                            "/>
                                             <div className="
                                                 block
-                                                w-full
-                                                font-defaultBold
-                                                text-[#111111]
-                                                text-[14px]
-                                                2xs:text-[16px]
-                                                text-center
-                                            ">Loading...</div>
+                                                w-[300%]
+                                                h-[3px]
+                                                overflow-hidden
+                                                absolute
+                                                top-0
+                                                left-0
+                                                -translate-x-[60%]
+                                                bg-no-repeat
+                                                bg-center
+                                                bg-cover
+                                                opacity-[.8]
+                                            " style={{backgroundImage: `url(${RippleThick})`}}></div>
                                         </div> : ""
                                     }
                                     {

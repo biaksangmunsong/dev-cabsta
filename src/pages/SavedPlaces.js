@@ -15,6 +15,7 @@ import DeleteIcon from "../components/icons/Delete"
 import XIcon from "../components/icons/XIcon"
 import StarIcon from "../components/icons/Star"
 import Spinner from "../images/spinner.gif"
+import RippleThick from "../images/ripple-thick.gif"
 
 const SavedPlaces = () => {
 
@@ -29,7 +30,7 @@ const SavedPlaces = () => {
     const signedIn = useUserStore(state => state.signedIn)
     const authToken = useUserStore(state => state.authToken)
     const resetUserData = useUserStore(state => state.reset)
-    const [ prompt, setPrompt ] = useState()
+    const [ prompt, setPrompt ] = useState(null)
     const canLoadMore = useRef(true)
     
     const addPlace = async () => {
@@ -174,7 +175,7 @@ const SavedPlaces = () => {
                 align-middle
                 float-right
                 font-defaultRegular
-                text-[center]
+                text-center
                 text-[#8a2be2]
                 text-[12px]
                 2xs:text-[14px]
@@ -728,24 +729,24 @@ const SavedPlaces = () => {
                     <div className="
                         block
                         w-full
-                        py-[20px]
+                        h-[3px]
+                        relative
+                        overflow-hidden
                     ">
-                        <img src={Spinner} alt="" className="
-                            block
-                            w-[35px]
-                            h-[35px]
-                            mx-auto
-                            mb-[5px]
-                        "/>
                         <div className="
                             block
-                            w-full
-                            font-defaultBold
-                            text-[#111111]
-                            text-[14px]
-                            2xs:text-[16px]
-                            text-center
-                        ">Loading...</div>
+                            w-[300%]
+                            h-[3px]
+                            overflow-hidden
+                            absolute
+                            top-0
+                            left-0
+                            -translate-x-[60%]
+                            bg-no-repeat
+                            bg-center
+                            bg-cover
+                            opacity-[.8]
+                        " style={{backgroundImage: `url(${RippleThick})`}}></div>
                     </div> : ""
                 }
                 {
@@ -784,7 +785,7 @@ const SavedPlaces = () => {
                             bg-[#8a2be2]
                             rounded-[6px]
                             font-defaultBold
-                            text-[center]
+                            text-center
                             text-[#ffffff]
                             text-[12px]
                             2xs:text-[14px]

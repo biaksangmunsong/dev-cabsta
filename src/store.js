@@ -85,6 +85,29 @@ const store = set => ({
             data: []
         }
     })),
+
+    rideHistory: {
+        init: false,
+        lastItem: Date.now(),
+        error: null,
+        loading: false,
+        data: []
+    },
+    setRideHistory: data => set(storeData => ({
+        rideHistory: {
+            ...storeData.rideHistory,
+            ...data
+        }
+    })),
+    resetRideHistory: () => set(() => ({
+        rideHistory: {
+            init: false,
+            lastItem: Date.now(),
+            error: null,
+            loading: false,
+            data: []
+        }
+    })),
     
     newPlaceForm: {
         placeId: "",

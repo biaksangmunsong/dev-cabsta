@@ -442,7 +442,7 @@ const NearbyDrivers = () => {
                                         2xs:text-[16px]
                                         leading-[20px]
                                         mb-[20px]
-                                    ">There are no drivers available <br/>near pickup location.</div>
+                                    ">There are currently no drivers <br/>available near pickup location.</div>
                                     <button type="button" className="
                                         block
                                         w-full

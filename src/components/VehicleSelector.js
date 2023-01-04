@@ -11,7 +11,7 @@ import Scooter from "./icons/Scooter"
 import Car from "./icons/Car"
 import LongRightArrow from "./icons/LongRightArrow"
 import Exclamation from "./icons/Exclamation"
-import Spinner from "../images/spinner.gif"
+import RippleThick from "../images/ripple-thick.gif"
 
 const VehicleSelector = () => {
     
@@ -267,28 +267,25 @@ const VehicleSelector = () => {
                         data.loading ?
                         <div className="
                             block
-                            w-[94%]
-                            max-w-[300px]
-                            mx-auto
-                            text-center
-                            py-[50px]
+                            w-full
+                            h-[3px]
+                            relative
+                            overflow-hidden
                         ">
-                            <img src={Spinner} alt="" className="
-                                block
-                                w-[30px]
-                                mx-auto
-                                mb-[6px]
-                            "/>
                             <div className="
                                 block
-                                w-full
-                                font-defaultRegular
-                                text-center
-                                text-[#111111]
-                                text-[14px]
-                                2xs:text-[16px]
-                                leading-[20px]
-                            ">Please wait...</div>
+                                w-[300%]
+                                h-[3px]
+                                overflow-hidden
+                                absolute
+                                top-0
+                                left-0
+                                -translate-x-[60%]
+                                bg-no-repeat
+                                bg-center
+                                bg-cover
+                                opacity-[.8]
+                            " style={{backgroundImage: `url(${RippleThick})`}}></div>
                         </div> : ""
                     }
                     {

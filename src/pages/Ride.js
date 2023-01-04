@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom"
 import useStore from "../store"
 import { useUserStore } from "../store"
 import CancellationPrompt from "../components/CancellationPrompt"
+import RideHistoryItem from "../components/RideHistoryItem"
 import LeftArrow from "../components/icons/LeftArrow"
 import RippleThick from "../images/ripple-thick.gif"
 import PickupPin from "../images/pickup-pin.png"
@@ -34,7 +35,6 @@ const Ride = () => {
     const driversRippleMarker = useRef(null)
     const directionsRenderer = useRef(null)
     const directionsService = useRef(null)
-    const mapsOverlay = useRef(null)
     const authToken = useUserStore(state => state.authToken)
     const resetUserData = useUserStore(state => state.reset)
     const googleMapsScriptLoaded = useStore(state => state.googleMapsScriptLoaded)
@@ -92,46 +92,6 @@ const Ride = () => {
             })
         }
     }, [data.loading, authToken, resetUserData, params.rideId, setDriversLiveLocation])
-
-    // const cancelRide = async () => {
-    //     if (cancelling || !data.data || data.data.status !== "initiated" || !authToken) return
-        
-    //     setCancelling(true)
-        
-    //     try {
-    //         await axios.post(`${process.env.REACT_APP_API_BASE_URL}/cancel-ride`, {
-    //             rideId: data.data._id,
-    //             reason: "test"
-    //         }, {
-    //             headers: {
-    //                 Authorization: `Bearer ${authToken}`
-    //             }
-    //         })
-    //         setCancelling(false)
-    //         setData({
-    //             ...data,
-    //             data: {
-    //                 ...data.data,
-    //                 status: "cancelled"
-    //             }
-    //         })
-    //         setDriversLiveLocation(null)
-    //     }
-    //     catch (err){
-    //         setCancelling(false)
-    //         if (err && err.response && err.response.data && err.response.data.code){
-    //             if (err.response.data.code === "credential-expired"){
-    //                 // alert user that they have to reauthenticate and sign out
-    //                 alert(err.response.data.message)
-    //                 return resetUserData()
-    //             }
-    //         }
-    //         const confirmation = window.confirm(`${(err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong"}. Try again?`)
-    //         if (confirmation){
-    //             cancelRide()
-    //         }
-    //     }
-    // }
     
     useEffect(() => {
         if (!authToken){
@@ -192,12 +152,6 @@ const Ride = () => {
                 clickableIcons: false
             }
             mapsRef.current = new window.google.maps.Map(mapsContainerRef.current, mapOptions)
-
-            mapsRef.current.addListener("projection_changed", () => {
-                mapsOverlay.current = new window.google.maps.OverlayView()
-                mapsOverlay.current.draw = () => {}
-                mapsOverlay.current.setMap(mapsRef.current)
-            })
             
             // calculate and display directions
             try {
@@ -294,6 +248,11 @@ const Ride = () => {
                     },
                     draggable: false
                 })
+                
+                mapsRef.current.setCenter({
+                    lat: driversLiveLocation.lat,
+                    lng: driversLiveLocation.lng
+                })
             }
             
             // set info window for driver's marker
@@ -307,33 +266,6 @@ const Ride = () => {
             }
             else {
                 driversInfoWindow.current.setContent(driversInfoWindowContent)
-            }
-            
-            // make sure driver's marker is always visible on the screen even when it changes position
-            if (mapsOverlay.current){
-                const proj = mapsOverlay.current.getProjection()
-                const pos = driversMarker.current.getPosition()
-                if (proj && pos){
-                    const p = proj.fromLatLngToContainerPixel(pos)
-
-                    if (
-                        p.x < 50 ||
-                        p.x > (window.innerWidth-50) ||
-                        p.y < 50 ||
-                        p.y > (window.innerHeight-50)
-                    ){
-                        mapsRef.current.setCenter({
-                            lat: driversLiveLocation.lat,
-                            lng: driversLiveLocation.lng
-                        })
-                    }
-                }
-            }
-            else {
-                mapsRef.current.setCenter({
-                    lat: driversLiveLocation.lat,
-                    lng: driversLiveLocation.lng
-                })
             }
         }
     }, [googleMapsScriptLoaded, data.data, driversLiveLocation])
@@ -361,13 +293,14 @@ const Ride = () => {
                         setDriversLiveLocation(location)
                     }
                 })
-                window.socket.on("ride-cancelled", rideId => {
-                    if (window.location.pathname.startsWith(`/history/${rideId}`)){
+                window.socket.on("ride-cancelled", d => {
+                    if (window.location.pathname.startsWith(`/history/${d.rideId}`)){
                         setData({
                             ...data,
                             data: {
                                 ...data.data,
-                                status: "cancelled"
+                                status: "cancelled",
+                                cancellation: d.cancellation
                             }
                         })
                         setDriversLiveLocation(null)
@@ -376,13 +309,20 @@ const Ride = () => {
             }
         }
     }, [data, setDriversLiveLocation])
+
+    useEffect(() => {
+        if (!data.data && window.location.search === "?cancel"){
+            window.history.back()
+        }
+    }, [data.data])
     
     return (
         <div className={`page`}>
             {
                 (locationQueries.includes("cancel") && data.data) ?
                 <CancellationPrompt
-                    data={data.data}
+                    data={data}
+                    setData={setData}
                 /> : ""
             }
             <div className={`
@@ -442,7 +382,7 @@ const Ride = () => {
                         <>
                             <Link to="?driver-details" className={`
                                 relative
-                                ${!locationQueries.includes("driver-details") ? "inline-block max-w-full h-[45px] shadow-xl rounded-[25px] pl-[46px] pr-[40px] bg-[#ffffff] pt-[6px] border border-solid border-[#dddddd]" : "flex w-full min-h-[90px] pl-[105px]"}
+                                ${!locationQueries.includes("driver-details") ? "inline-block max-w-full h-[45px] shadow-xl rounded-[25px] pl-[46px] pr-[40px] bg-[#ffffff] border border-solid border-[#dddddd]" : "flex w-full min-h-[90px] pl-[105px]"}
                                 duration-[.2s]
                                 ease-in-out
                             `}>
@@ -473,31 +413,42 @@ const Ride = () => {
                                         font-defaultBold
                                         text-left
                                         text-[#8a2be2]
-                                        ${!locationQueries.includes("driver-details") ? "overflow-hidden text-ellipsis whitespace-nowrap text-[12px] leading-[16px]" : "text-[16px] 2xs:text-[18px]"}
-                                    `}>{data.data.details.driver.name}</div>
-                                    <div className={`
-                                        block
-                                        w-full
-                                        font-defaultRegular
-                                        text-left
-                                        text-[#888888]
-                                        text-[10px]
-                                        leading-[14px]
-                                        ${!locationQueries.includes("driver-details") ? "overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-[14px]" : "text-[12px] 2xs:text-[14px]"}
+                                        ${!locationQueries.includes("driver-details") ? "overflow-hidden text-ellipsis whitespace-nowrap text-[13px] leading-[40px] pl-[14px]" : "text-[16px] 2xs:text-[18px] pl-[21px]"}
+                                        relative
                                     `}>
                                         <span className={`
-                                            inline-block
-                                            align-middle
-                                            ${locationQueries.includes("driver-details") ? "w-[15px] h-[15px] mr-[5px]" : "w-[10px] h-[10px] mr-[3px]"}
+                                            block
+                                            ${locationQueries.includes("driver-details") ? "w-[15px] h-[15px]" : "w-[10px] h-[10px]"}
                                             rounded-[50%]
                                             bg-[#bb0000]
+                                            absolute
+                                            top-1/2
+                                            -translate-y-1/2
+                                            left-0
                                             pulse-dot
                                         `}></span>
-                                        <span className="
-                                            inline-block
-                                            align-middle
-                                        ">On {data.data.details.driver.gender === "male" ? "his" : "her"} way</span>
+                                        <span>{data.data.details.driver.name}</span>
                                     </div>
+                                    {
+                                        locationQueries.includes("driver-details") ?
+                                        <div className="
+                                            block
+                                            w-full
+                                            pl-[21px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultRegular
+                                                text-left
+                                                text-[#555555]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                capitalize
+                                            ">{data.data.details.driver.age}, {data.data.details.driver.gender}</div>
+                                        </div> : ""
+                                    }
                                 </div>
                                 {
                                     !locationQueries.includes("driver-details") ?
@@ -515,350 +466,277 @@ const Ride = () => {
                                     </div> : ""
                                 }
                             </Link>
-                            <a href={`tel:${data.data.details.driver.phoneNumber}`} target="_blank" rel="noopener noreferrer" className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                leading-[55px]
-                                font-defaultBold
-                                text-center
-                                text-[14px]
-                                2xs:text-[16px]
-                                text-[#444444]
-                                my-[30px]
-                                relative
-                                active:bg-[#dddddd]
-                                border-[2px]
-                                border-solid
-                                border-[#444444]
-                                rounded-[30px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[25px]
-                                    h-[25px]
-                                    absolute
-                                    top-1/2
-                                    -translate-y-1/2
-                                    left-[15px]
-                                ">
-                                    <PhoneIcon color="#444444"/>
-                                </div>
-                                Call Driver
-                            </a>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                relative
-                                pl-[130px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">Gender<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">{data.data.details.driver.gender}</div>
-                            </div>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                mt-[15px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                                relative
-                                pl-[130px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">Age<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">{data.data.details.driver.age}</div>
-                            </div>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                mt-[15px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                                relative
-                                pl-[130px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">Phone<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">{data.data.details.driver.phoneNumber.replace(data.data.details.driver.countryCode, "")}</div>
-                            </div>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                mt-[15px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                                relative
-                                pl-[130px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">Vehicle<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">{data.data.details.driver.vehicle.model}</div>
-                            </div>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                mt-[15px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                                relative
-                                pl-[130px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">No. Plate<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">{data.data.details.driver.vehicle.numberPlate}</div>
-                            </div>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                mt-[15px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                                relative
-                                pl-[130px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">Price<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">₹{data.data.details.price}</div>
-                            </div>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                mt-[15px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                                relative
-                                pl-[130px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">Distance<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">{data.data.details.distance.text}</div>
-                            </div>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                mt-[15px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                                relative
-                                pl-[130px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">From<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">{data.data.details.pickupLocation.address}</div>
-                            </div>
-                            <div className={`
-                                ${locationQueries.includes("driver-details") ? "block" : "hidden"}
-                                w-full
-                                overflow-hidden
-                                mt-[15px]
-                                border-b
-                                border-dashed
-                                border-[#bbbbbb]
-                                pb-[15px]
-                                relative
-                                pl-[130px]
-                            `}>
-                                <div className="
-                                    block
-                                    w-[115px]
-                                    absolute
-                                    top-0
-                                    left-0
-                                    font-defaultRegular
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">To<span className="float-right">:</span></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    capitalize
-                                    font-defaultBold
-                                    text-left
-                                    text-[#444444]
-                                    text-[12px]
-                                    2xs:text-[14px]
-                                ">{data.data.details.destination.address}</div>
-                            </div>
+                            {
+                                locationQueries.includes("driver-details") ?
+                                <>
+                                    <a href={`tel:${data.data.details.driver.phoneNumber}`} target="_blank" rel="noopener noreferrer" className={`
+                                        ${locationQueries.includes("driver-details") ? "block" : "hidden"}
+                                        w-full
+                                        leading-[55px]
+                                        font-defaultBold
+                                        text-center
+                                        text-[14px]
+                                        2xs:text-[16px]
+                                        text-[#444444]
+                                        my-[30px]
+                                        relative
+                                        active:bg-[#dddddd]
+                                        border-[2px]
+                                        border-solid
+                                        border-[#444444]
+                                        rounded-[30px]
+                                    `}>
+                                        <div className="
+                                            block
+                                            w-[25px]
+                                            h-[25px]
+                                            absolute
+                                            top-1/2
+                                            -translate-y-1/2
+                                            left-[15px]
+                                        ">
+                                            <PhoneIcon color="#444444"/>
+                                        </div>
+                                        Call Driver
+                                    </a>
+                                    <div className="
+                                        block
+                                        w-full
+                                        pb-[20px]
+                                        border-b
+                                        border-solid
+                                        border-[#cccccc]
+                                    ">
+                                        <div className="
+                                            block
+                                            w-full
+                                            relative
+                                            z-[10]
+                                            overflow-hidden
+                                            pl-[20px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[10px]
+                                                h-full
+                                                absolute
+                                                top-0
+                                                mt-[5px]
+                                                left-0
+                                            ">
+                                                <div className="
+                                                    block
+                                                    w-[10px]
+                                                    h-[10px]
+                                                    bg-[#111111]
+                                                    rounded-[50%]
+                                                "></div>
+                                                <div className="
+                                                    block
+                                                    w-[2px]
+                                                    h-full
+                                                    absolute
+                                                    top-[14px]
+                                                    left-[4px]
+                                                    bg-[#888888]
+                                                "></div>
+                                            </div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultRegular
+                                                text-left
+                                                text-[#888888]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                mb-[5px]
+                                            ">Pickup Location</div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultRegular
+                                                text-left
+                                                text-[#111111]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                            ">{data.data.details.pickupLocation.address}</div>
+                                        </div>
+                                        <div className="
+                                            block
+                                            w-[2px]
+                                            h-[30px]
+                                            ml-[4px]
+                                            bg-[#888888]
+                                        "></div>
+                                        <div className="
+                                            block
+                                            w-full
+                                            relative
+                                            z-[10]
+                                            overflow-hidden
+                                            pl-[20px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[10px]
+                                                h-full
+                                                absolute
+                                                top-0
+                                                mt-[5px]
+                                                left-0
+                                            ">
+                                                <div className="
+                                                    block
+                                                    w-[10px]
+                                                    h-[10px]
+                                                    bg-[#111111]
+                                                "></div>
+                                                <div className="
+                                                    block
+                                                    w-[2px]
+                                                    h-full
+                                                    absolute
+                                                    -top-1/2
+                                                    -translate-y-1/2
+                                                    -mt-[4px]
+                                                    left-[4px]
+                                                    bg-[#888888]
+                                                "></div>
+                                            </div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultRegular
+                                                text-left
+                                                text-[#888888]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                mb-[5px]
+                                            ">Destination</div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultRegular
+                                                text-left
+                                                text-[#111111]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                            ">{data.data.details.destination.address}</div>
+                                        </div>
+                                    </div>
+                                    <div className="
+                                        block
+                                        w-full
+                                        pt-[20px]
+                                    ">
+                                        <div className="
+                                            block
+                                            w-full
+                                            min-h-[20px]
+                                            relative
+                                            pl-[100px]
+                                            pr-[5px]
+                                            mb-[10px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[100px]
+                                                font-defaultBold
+                                                text-left
+                                                text-[#111111]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                absolute
+                                                top-0
+                                                left-0
+                                            ">Vehicle<span className="absolute top-0 right-0">:</span></div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultRegular
+                                                text-left
+                                                text-[#111111]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                pl-[15px]
+                                            ">{data.data.details.driver.vehicle.model}, {data.data.details.driver.vehicle.numberPlate}</div>
+                                        </div>
+                                        <div className="
+                                            block
+                                            w-full
+                                            min-h-[20px]
+                                            relative
+                                            pl-[100px]
+                                            pr-[5px]
+                                            mb-[10px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[100px]
+                                                font-defaultBold
+                                                text-left
+                                                text-[#111111]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                absolute
+                                                top-0
+                                                left-0
+                                            ">Distance<span className="absolute top-0 right-0">:</span></div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultRegular
+                                                text-left
+                                                text-[#111111]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                pl-[15px]
+                                            ">{data.data.details.distance.text}</div>
+                                        </div>
+                                        <div className="
+                                            block
+                                            w-full
+                                            min-h-[20px]
+                                            relative
+                                            pl-[100px]
+                                            pr-[5px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[100px]
+                                                font-defaultBold
+                                                text-left
+                                                text-[#111111]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                absolute
+                                                top-0
+                                                left-0
+                                            ">Price<span className="absolute top-0 right-0">:</span></div>
+                                            <div className="
+                                                block
+                                                w-full
+                                                font-defaultRegular
+                                                text-left
+                                                text-[#111111]
+                                                text-[12px]
+                                                2xs:text-[14px]
+                                                leading-[20px]
+                                                pl-[15px]
+                                            ">₹{data.data.details.price}</div>
+                                        </div>
+                                    </div>
+                                </> : ""
+                            }
                         </> : ""
                     }
                 </div>
@@ -867,7 +745,7 @@ const Ride = () => {
                 block
                 w-full
                 h-full
-                overflow-hidden
+                overflow-auto
             ">
                 {
                     data.error ?
@@ -1082,7 +960,9 @@ const Ride = () => {
                                     </div>
                                 </div>
                             </div> :
-                            <div>{data.data.status}</div>
+                            <RideHistoryItem
+                                data={data}
+                            />
                         }
                     </> : ""
                 }
