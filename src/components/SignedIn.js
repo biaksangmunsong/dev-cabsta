@@ -52,11 +52,12 @@ const SignedIn = () => {
                     2xs:leading-[25px]
                     xs:leading-[26px]
                     text-[#222222]
+                    mb-[5px]
                 ">Going somewhere?</h2>
                 <h1 className="
                     block
                     w-full
-                    font-defaultBold
+                    font-defaultRegular
                     text-left
                     text-[26px]
                     2xs:text-[30px]
@@ -65,7 +66,8 @@ const SignedIn = () => {
                     2xs:leading-[40px]
                     xs:leading-[45px]
                     text-[#111111]
-                ">We'll get you there,<br/>Let's go.</h1>
+                    mb-[20px]
+                ">We'll find a ride for <br/>you, <span className="font-defaultBold text-[#8a2be2]">let's go.</span></h1>
             </div>
             <RideEditor/>
             <div className={`
