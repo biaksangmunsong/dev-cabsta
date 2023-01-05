@@ -306,6 +306,19 @@ const Ride = () => {
                         setDriversLiveLocation(null)
                     }
                 })
+                window.socket.on("ride-completed", d => {
+                    if (window.location.pathname.startsWith(`/history/${d.rideId}`)){
+                        setData({
+                            ...data,
+                            data: {
+                                ...data.data,
+                                status: "completed",
+                                completedAt: d.completedAt
+                            }
+                        })
+                        setDriversLiveLocation(null)
+                    }
+                })
             }
         }
     }, [data, setDriversLiveLocation])

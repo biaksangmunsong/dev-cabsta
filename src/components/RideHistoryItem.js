@@ -61,7 +61,7 @@ const RideHistoryItem = ({data}) => {
                     {
                         data.data.status === "cancelled" ?
                         `${dayjs(data.data.cancellation.iat).fromNow()}, by ${data.data.cancellation.iby === "passenger" ? "you" : "driver"}` :
-                        `${dayjs(data.data.completedAt)}`
+                        `${dayjs(data.data.completedAt).fromNow()}`
                     }
                 </div>
                 <div className="

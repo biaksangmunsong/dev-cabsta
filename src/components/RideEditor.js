@@ -405,6 +405,7 @@ const Editor = () => {
                 }, 200)
             }
             else {
+                mapsRef.current.setZoom(10)
                 navigate("/choose-vehicle")
             }
             // calculate and display directions
