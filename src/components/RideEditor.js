@@ -1064,24 +1064,27 @@ const Editor = () => {
                         mx-auto
                         relative
                     `}>
-                        <button type="button" className={`
-                            block
-                            w-[40px]
-                            h-[40px]
-                            ${locationQueries.includes("show-hints") ? "bg-transparent top-[10px] -left-[10px]" : "bg-[#111111] top-0 left-0"}
-                            rounded-[50%]
-                            p-[12px]
-                            absolute
-                            z-[20]
-                            duration-[.2s]
-                            ease-in-out
-                        `} onClick={onHintBtnClick}>
-                            {
-                                locationQueries.includes("show-hints") ?
-                                <XIcon color="#111111"/> :
-                                <QuestionIcon color="#ffffff"/>
-                            }
-                        </button>
+                        {
+                            !locationQueries.includes("expand-saved-places") ?
+                            <button type="button" className={`
+                                block
+                                w-[40px]
+                                h-[40px]
+                                ${locationQueries.includes("show-hints") ? "bg-transparent top-[10px] -left-[10px]" : "bg-[#111111] top-0 left-0"}
+                                rounded-[50%]
+                                p-[12px]
+                                absolute
+                                z-[20]
+                                duration-[.2s]
+                                ease-in-out
+                            `} onClick={onHintBtnClick}>
+                                {
+                                    locationQueries.includes("show-hints") ?
+                                    <XIcon color="#111111"/> :
+                                    <QuestionIcon color="#ffffff"/>
+                                }
+                            </button> : ""
+                        }
                     </div>
                 </div>
                 {
@@ -1706,30 +1709,33 @@ const Editor = () => {
                     duration-[.2s]
                     ease-in-out
                 `}>
-                    <button type="button" className={`
-                        block
-                        w-[94%]
-                        max-w-[1000px]
-                        h-[55px]
-                        2xs:h-[60px]
-                        mx-auto
-                        font-defaultBold
-                        text-left
-                        text-[#ffffff]
-                        text-[14px]
-                        2xs:text-[16px]
-                        px-[20px]
-                        ${(pickupLocation && destination && !locationPointsError) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#aaaaaa]"}
-                    `} onClick={chooseVehicle}>Continue
-                        <div className="
-                            inline-block
-                            align-middle
-                            float-right
-                            w-[24px]
-                        ">
-                            <LongRightArrow color="#ffffff"/>
-                        </div>
-                    </button>
+                    {
+                        !locationQueries.includes("expand-saved-places") ?
+                        <button type="button" className={`
+                            block
+                            w-[94%]
+                            max-w-[1000px]
+                            h-[55px]
+                            2xs:h-[60px]
+                            mx-auto
+                            font-defaultBold
+                            text-left
+                            text-[#ffffff]
+                            text-[14px]
+                            2xs:text-[16px]
+                            px-[20px]
+                            ${(pickupLocation && destination && !locationPointsError) ? "bg-[#111111] active:bg-[#333333]" : "bg-[#aaaaaa]"}
+                        `} onClick={chooseVehicle}>Continue
+                            <div className="
+                                inline-block
+                                align-middle
+                                float-right
+                                w-[24px]
+                            ">
+                                <LongRightArrow color="#ffffff"/>
+                            </div>
+                        </button> : ""
+                    }
                 </div>
             </div>
             <VehicleSelector/>
