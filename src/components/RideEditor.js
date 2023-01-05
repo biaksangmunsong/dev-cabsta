@@ -399,15 +399,8 @@ const Editor = () => {
     const chooseVehicle = async () => {
         if (pickupLocation && destination && mapsRef.current && !locationPointsError){
             mapsRef.current.setZoom(10)
-            if (locationQueries.includes("expand-saved-places")){
-                window.history.back()
-                setTimeout(() => {
-                    navigate("/choose-vehicle")
-                }, 200)
-            }
-            else {
-                navigate("/choose-vehicle")
-            }
+            navigate("/choose-vehicle")
+
             // calculate and display directions
             try {
                 if (directionsRenderer.current){
