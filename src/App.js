@@ -26,6 +26,7 @@ import ImageCropper from "./components/ImageCropper"
 
 // import background components
 import WebSocketHandler from "./background-components/WebSocketHandler"
+import AutofillOtpHander from "./background-components/AutofillOtpHandler"
 
 const App = () => {
 
@@ -193,12 +194,6 @@ const App = () => {
             setDriversLiveLocation(null)
         }
     }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetRideHistory, resetPricing, resetRejectingDrivers, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest, setDriversLiveLocation])
-
-    useEffect(() => {
-        if (window.OTPCredential){
-            window.alert("Otp credential available")
-        }
-    }, [])
     
     return (
         <div className={`
@@ -214,6 +209,7 @@ const App = () => {
             ease-in-out
         `}>
             <WebSocketHandler/>
+            <AutofillOtpHander/>
             {
                 (networkStatus < 1 && networkStatus !== -1) ?
                 <OfflineBanner/> : ""
