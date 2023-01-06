@@ -26,7 +26,6 @@ import ImageCropper from "./components/ImageCropper"
 
 // import background components
 import WebSocketHandler from "./background-components/WebSocketHandler"
-import AutofillOtpHander from "./background-components/AutofillOtpHandler"
 
 const App = () => {
 
@@ -209,7 +208,6 @@ const App = () => {
             ease-in-out
         `}>
             <WebSocketHandler/>
-            <AutofillOtpHander/>
             {
                 (networkStatus < 1 && networkStatus !== -1) ?
                 <OfflineBanner/> : ""
