@@ -240,6 +240,14 @@ const store = set => ({
     driversLiveLocation: null,
     setDriversLiveLocation: data => set(() => ({
         driversLiveLocation: data
+    })),
+
+    uncompletedRides: [],
+    setUncompletedRides: newList => set(storeData => ({
+        uncompletedRides: newList
+    })),
+    resetUncompletedRides: () => set(() => ({
+        uncompletedRides: []
     }))
 })
 

@@ -50,6 +50,8 @@ const App = () => {
     const resetRejectingDrivers = useStore(state => state.resetRejectingDrivers)
     const resetNearbyDrivers = useStore(state => state.resetNearbyDrivers)
     const resetRideRequest = useStore(state => state.resetRideRequest)
+    const setUncompletedRides = useStore(state => state.setUncompletedRides)
+    const resetUncompletedRides = useStore(state => state.resetUncompletedRides)
     const setDriversLiveLocation = useStore(state => state.setDriversLiveLocation)
     const authToken = useUserStore(state => state.authToken)
     const updateUserData = useUserStore(state => state.update)
@@ -156,6 +158,7 @@ const App = () => {
                             profilePhoto: res.data.profilePhoto ? res.data.profilePhoto.url : "",
                             profilePhotoThumbnail: res.data.profilePhoto ? res.data.profilePhoto.thumbnail_url : ""
                         })
+                        setUncompletedRides(res.data.uncompletedRides)
                     }
                     else {
                         setUserDataIsUpToDate(false)
@@ -173,7 +176,7 @@ const App = () => {
             }
             getUserData()
         }
-    }, [networkStatus, userDataIsUpToDate, setUserDataIsUpToDate, authToken, updateUserData, resetUserData])
+    }, [networkStatus, userDataIsUpToDate, setUserDataIsUpToDate, authToken, updateUserData, resetUserData, setUncompletedRides])
 
     useEffect(() => {
         // clear app states when signed out
@@ -190,8 +193,9 @@ const App = () => {
             resetNotResponsiveDrivers()
             resetRideRequest()
             setDriversLiveLocation(null)
+            resetUncompletedRides()
         }
-    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetRideHistory, resetPricing, resetRejectingDrivers, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest, setDriversLiveLocation])
+    }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetRideHistory, resetPricing, resetRejectingDrivers, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest, setDriversLiveLocation, resetUncompletedRides])
     
     return (
         <div className={`

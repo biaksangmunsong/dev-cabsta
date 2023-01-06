@@ -4,12 +4,14 @@ import useStore from "../store"
 import { useUserStore, useInputStore } from "../store"
 import { io } from "socket.io-client"
 import { Haptics } from "@capacitor/haptics"
+import refreshUncompletedRides from "../lib/refreshUncompletedRides"
 
 const WebSocketHandler = () => {
 	
 	const navigate = useNavigate()
 	const authToken = useUserStore(state => state.authToken)
 	const rideRequest = useStore(state => state.rideRequest)
+	const setUncompletedRides = useStore(state => state.setUncompletedRides)
 	const rideRequestRef = useRef(rideRequest)
 	const setRideRequest = useStore(state => state.setRideRequest)
 	const setRejectingDrivers = useStore(state => state.setRejectingDrivers)
@@ -83,6 +85,9 @@ const WebSocketHandler = () => {
 					window.acceptedRideRequestData = ride
 					navigate(`/history/${ride._id}`, {replace: window.location.pathname === "/nearby-drivers" ? true : false})
 				})
+				window.socket.on("refresh-history", () => {
+					refreshUncompletedRides(authToken, setUncompletedRides)
+				})
 			}
 		}
 		else {
@@ -91,7 +96,7 @@ const WebSocketHandler = () => {
 				window.socket = undefined
 			}
 		}
-	}, [authToken, setRideRequest, setRejectingDrivers, setUaNearbyDrivers, removeUaNearbyDriver, resetRideRequest, onRideRequestAccepted, navigate])
+	}, [authToken, setRideRequest, setRejectingDrivers, setUaNearbyDrivers, removeUaNearbyDriver, resetRideRequest, onRideRequestAccepted, navigate, setUncompletedRides])
 	
 	return (<div className="hidden"></div>)
 

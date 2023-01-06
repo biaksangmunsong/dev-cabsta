@@ -3,7 +3,6 @@ import useStore from "../store"
 import { useUserStore } from "../store"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import ProfilePhoto from "../images/profile-photo.jpg"
-import Bell from "./icons/Bell"
 
 const Menu = () => {
 
@@ -104,19 +103,6 @@ const Menu = () => {
                     relative
                     overflow-visible
                 ">
-                    <Link to="/history/63b7e99aeef14f87e59f932f" type="button" className="
-                        inline-block
-                        w-[40px]
-                        h-[40px]
-                        active:bg-[#eeeeee]
-                        absolute
-                        z-[20]
-                        top-[10px]
-                        right-[45px]
-                        p-[8px]
-                    ">
-                        <Bell color="#555555"/>
-                    </Link>
                     <button type="button" className={`
                         inline-block
                         w-[40px]

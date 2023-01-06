@@ -12,6 +12,11 @@ const CancellationPrompt = ({data, setData}) => {
     const authToken = useUserStore(state => state.authToken)
     const resetUserData = useUserStore(state => state.reset)
     const setDriversLiveLocation = useStore(state => state.setDriversLiveLocation)
+    const uncompletedRides = useStore(state => state.uncompletedRides)
+    const uncompletedRidesRef = useRef(uncompletedRides)
+    useEffect(() => {
+        uncompletedRidesRef.current = uncompletedRides
+    }, [uncompletedRides])
     const [ selectedReason, setSelectedReason ] = useState("")
     const [ otherReason, setOtherReason ] = useState("")
     const [ reason, setReason ] = useState("")

@@ -1,98 +1,98 @@
-import { useState, useEffect, useCallback, useRef } from "react"
-import axios from "axios"
-import { Link } from "react-router-dom"
-import useStore from "../store"
-import { useUserStore } from "../store"
+// import { useState, useEffect, useCallback, useRef } from "react"
+// import axios from "axios"
+// import { Link } from "react-router-dom"
+// import useStore from "../store"
+// import { useUserStore } from "../store"
 import Header from "../components/Header"
-import RideHistoryListItem from "../components/RideHistoryListItem"
+// import RideHistoryListItem from "../components/RideHistoryListItem"
 // import DeleteIcon from "../components/icons/Delete"
-import XIcon from "../components/icons/XIcon"
-import SadFace from "../components/icons/SadFace"
-import EmptyIcon from "../components/icons/Empty"
-import RippleThick from "../images/ripple-thick.gif"
+// import XIcon from "../components/icons/XIcon"
+// import SadFace from "../components/icons/SadFace"
+// import EmptyIcon from "../components/icons/Empty"
+// import RippleThick from "../images/ripple-thick.gif"
 
 const History = () => {
 
-    const [ prompt ] = useState(null)
-    const rideHistory = useStore(state => state.rideHistory)
-    const setRideHistory = useStore(state => state.setRideHistory)
-    const authToken = useUserStore(state => state.authToken)
-    const resetUserData = useUserStore(state => state.reset)
-    const canLoadMore = useRef(true)
+    // const [ prompt ] = useState(null)
+    // const rideHistory = useStore(state => state.rideHistory)
+    // const setRideHistory = useStore(state => state.setRideHistory)
+    // const authToken = useUserStore(state => state.authToken)
+    // const resetUserData = useUserStore(state => state.reset)
+    // const canLoadMore = useRef(true)
     
-    const getRideHistory = useCallback(async () => {
-        if (!authToken || rideHistory.loading || !canLoadMore.current) return
+    // const getRideHistory = useCallback(async () => {
+    //     if (!authToken || rideHistory.loading || !canLoadMore.current) return
         
-        setRideHistory({
-            init: true,
-            error: null,
-            loading: true
-        })
-        canLoadMore.current = false
+    //     setRideHistory({
+    //         init: true,
+    //         error: null,
+    //         loading: true
+    //     })
+    //     canLoadMore.current = false
         
-        try {
-            const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/get-ride-history?lastItem=${rideHistory.lastItem}`, {
-                headers: {
-                    Authorization: `Bearer ${authToken}`
-                }
-            })
+    //     try {
+    //         const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/get-ride-history?lastItem=${rideHistory.lastItem}`, {
+    //             headers: {
+    //                 Authorization: `Bearer ${authToken}`
+    //             }
+    //         })
 
-            if (res.status === 200 && res.data){
-                if (res.data.length >= 5){
-                    canLoadMore.current = true
-                }
-                setRideHistory({
-                    lastItem: res.data.length ? res.data[res.data.length-1].acceptedAt : rideHistory.lastItem,
-                    loading: false,
-                    error: null,
-                    data: [
-                        ...rideHistory.data,
-                        ...res.data
-                    ]
-                })
-            }
-            else {
-                setRideHistory({
-                    loading: false,
-                    error: {
-                        message: "Something went wrong, please try again."
-                    }
-                })
-            }
-        }
-        catch (err){
-            if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
-                // alert user that they have to reauthenticate and sign out
-                alert(err.response.data.message)
-                return resetUserData()
-            }
-            setRideHistory({
-                loading: false,
-                error: {
-                    message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
-                }
-            })
-        }
-    }, [authToken, resetUserData, rideHistory, setRideHistory])
+    //         if (res.status === 200 && res.data){
+    //             if (res.data.length >= 5){
+    //                 canLoadMore.current = true
+    //             }
+    //             setRideHistory({
+    //                 lastItem: res.data.length ? res.data[res.data.length-1].acceptedAt : rideHistory.lastItem,
+    //                 loading: false,
+    //                 error: null,
+    //                 data: [
+    //                     ...rideHistory.data,
+    //                     ...res.data
+    //                 ]
+    //             })
+    //         }
+    //         else {
+    //             setRideHistory({
+    //                 loading: false,
+    //                 error: {
+    //                     message: "Something went wrong, please try again."
+    //                 }
+    //             })
+    //         }
+    //     }
+    //     catch (err){
+    //         if (err && err.response && err.response.data && err.response.data.code && err.response.data.code === "credential-expired"){
+    //             // alert user that they have to reauthenticate and sign out
+    //             alert(err.response.data.message)
+    //             return resetUserData()
+    //         }
+    //         setRideHistory({
+    //             loading: false,
+    //             error: {
+    //                 message: (err && err.response && err.response.data && err.response.data.message) ? err.response.data.message : "Something went wrong, please try again."
+    //             }
+    //         })
+    //     }
+    // }, [authToken, resetUserData, rideHistory, setRideHistory])
 
-    const retryGettingRideHistory = () => {
-        canLoadMore.current = true
-        getRideHistory()
-    }
+    // const retryGettingRideHistory = () => {
+    //     canLoadMore.current = true
+    //     getRideHistory()
+    // }
 
-    const onScroll = () => {
-        return null
-    }
+    // const onScroll = () => {
+    //     return null
+    // }
     
-    useEffect(() => {
-        if (!rideHistory.init){
-            getRideHistory()
-        }
-    }, [rideHistory.init, getRideHistory])
+    // useEffect(() => {
+    //     if (!rideHistory.init){
+    //         getRideHistory()
+    //     }
+    // }, [rideHistory.init, getRideHistory])
 
-    useEffect(() => {
-        console.log(rideHistory.data)
-    }, [rideHistory.data])
+    // useEffect(() => {
+    //     console.log(rideHistory.data)
+    // }, [rideHistory.data])
     
     return (
         <div className={`
@@ -102,7 +102,16 @@ const History = () => {
             <Header
                 heading="History"
             />
-            <div className={`
+            <div className="
+                block
+                w-[94%]
+                max-w-[1000px]
+                mx-auto
+                font-defaultRegular
+                text-left
+                py-[30px]
+            ">Hiai lak bawl man nailou :(</div>
+            {/* <div className={`
                 flex
                 w-full
                 h-full
@@ -156,8 +165,8 @@ const History = () => {
                     top-0
                     left-0
                 " onClick={() => window.history.back()}></div>
-            </div>
-            <div className="
+            </div> */}
+            {/* <div className="
                 block
                 w-full
                 h-full
@@ -286,7 +295,7 @@ const History = () => {
                         ">Request a Ride</Link>
                     </div> : ""
                 }
-            </div>
+            </div> */}
         </div>
     )
 
