@@ -195,7 +195,9 @@ const App = () => {
     }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetRideHistory, resetPricing, resetRejectingDrivers, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest, setDriversLiveLocation])
 
     useEffect(() => {
-        console.log(window.OTPCredential)
+        if (window.OTPCredential){
+            window.alert("Otp credential available")
+        }
     }, [])
     
     return (
