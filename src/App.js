@@ -17,7 +17,6 @@ import PageNotFound from "./pages/PageNotFound"
 import SavedPlaces from "./pages/SavedPlaces"
 import ChangePhoneNumber from "./pages/ChangePhoneNumber"
 import PricingPage from "./pages/PricingPage"
-import Request from "./pages/Request"
 import History from "./pages/History"
 
 // import components
@@ -255,9 +254,6 @@ const App = () => {
                 }/>
                 <Route path="/pricing" element={
                     <PricingPage/>
-                }/>
-                <Route path="/request" element={
-                    <Request/>
                 }/>
                 <Route path="*" element={
                     <PageNotFound/>
