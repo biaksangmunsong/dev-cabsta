@@ -193,6 +193,10 @@ const App = () => {
             setDriversLiveLocation(null)
         }
     }, [authToken, resetProfileForm, resetNewPlaceForm, clearInputStore, resetSavedPlaces, resetRideHistory, resetPricing, resetRejectingDrivers, resetUaNearbyDrivers, resetNearbyDrivers, resetNotResponsiveDrivers, resetRideRequest, setDriversLiveLocation])
+
+    useEffect(() => {
+        console.log(window.OTPCredential)
+    }, [])
     
     return (
         <div className={`
