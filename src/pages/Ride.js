@@ -13,6 +13,7 @@ import DestinationPin from "../images/destination-pin.png"
 import SadFace from "../components/icons/SadFace"
 import ChevronDown from "../components/icons/ChevronDown"
 import PhoneIcon from "../components/icons/Phone"
+import CheckIcon from "../components/icons/Check"
 import mpsToKmph from "../lib/mpsToKmph"
 
 const Ride = () => {
@@ -24,6 +25,7 @@ const Ride = () => {
         error: null,
         data: null
     })
+    const [ showRequestedAcceptedPrompt, setShowRequestAcceptedPrompt ] = useState(true)
     const initiated = useRef(false)
     const mapsRef = useRef(null)
     const mapsContainerRef = useRef(null)
@@ -92,6 +94,10 @@ const Ride = () => {
             })
         }
     }, [data.loading, authToken, resetUserData, params.rideId, setDriversLiveLocation])
+
+    const startTracking = () => {
+        setShowRequestAcceptedPrompt(false)
+    }
     
     useEffect(() => {
         if (!authToken){
@@ -124,20 +130,25 @@ const Ride = () => {
             
             if (window.acceptedRideRequestData && window.acceptedRideRequestData._id === params.rideId){
                 setDriversLiveLocation(window.acceptedRideRequestData.driversLiveLocation)
-                return setData({
+                setShowRequestAcceptedPrompt(true)
+                setData({
                     loading: false,
                     error: null,
                     data: window.acceptedRideRequestData
                 })
+                window.acceptedRideRequestData = undefined
             }
-            window.acceptedRideRequestData = undefined
-            getData()
+            else {
+                setShowRequestAcceptedPrompt(false)
+                window.acceptedRideRequestData = undefined
+                getData()
+            }
         }
     }, [params.rideId, getData, setDriversLiveLocation])
     
     // load maps when data is ready and google maps script is loaded
     useEffect(() => {
-        if (googleMapsScriptLoaded && data.data && data.data.status === "initiated" && !mapsRef.current && mapsContainerRef.current){
+        if (googleMapsScriptLoaded && data.data && data.data.status === "initiated" && !mapsRef.current && mapsContainerRef.current && !showRequestedAcceptedPrompt){
             // init maps
             const center = {
                 lat: data.data.details.pickupLocation.lat,
@@ -213,7 +224,7 @@ const Ride = () => {
             }
             catch {}
         }
-    }, [googleMapsScriptLoaded, data.data])
+    }, [googleMapsScriptLoaded, data.data, showRequestedAcceptedPrompt])
 
     useEffect(() => {
         if (googleMapsScriptLoaded && data.data && data.data.status === "initiated" && driversLiveLocation && mapsRef.current){
@@ -391,7 +402,7 @@ const Ride = () => {
                         <LeftArrow color="#111111"/>
                     </button>
                     {
-                        (data.data && data.data.status === "initiated") ?
+                        (data.data && data.data.status === "initiated" && !showRequestedAcceptedPrompt) ?
                         <>
                             <Link to="?driver-details" className={`
                                 relative
@@ -811,168 +822,487 @@ const Ride = () => {
                     <>
                         {
                             data.data.status === "initiated" ?
-                            <div className={`
-                                block
-                                w-full
-                                h-full
-                                ${driversLiveLocation ? "pb-[100px]" : "pb-[140px]"}
-                                relative
-                                z-[10]
-                                duration-[.2]
-                                ease-in-out
-                            `}>
-                                <div className="
-                                    block
-                                    w-full
-                                    h-0
-                                    overflow-visible
-                                    absolute
-                                    z-[20]
-                                    top-[65px]
-                                    left-0
-                                ">
-                                    <div className="
-                                        block
-                                        w-[94%]
-                                        max-w-[1000px]
-                                        mx-auto
-                                        text-left
-                                    ">
-                                        <div className="
-                                            inline-block
-                                            align-middle
-                                            leading-[30px]
-                                            rounded-[20px]
-                                            px-[15px]
-                                            bg-[#ffffff]
-                                            shadow-xl
-                                            border
-                                            border-solid
-                                            border-[#dddddd]
-                                            font-defaultBold
-                                            text-center
-                                            text-[#8a2be2]
-                                            text-[12px]
-                                            2xs:text-[14px]
-                                        ">₹{data.data.details.price}</div>
-                                        <div className="
-                                            inline-block
-                                            align-middle
-                                            leading-[30px]
-                                            rounded-[20px]
-                                            px-[15px]
-                                            bg-[#ffffff]
-                                            shadow-xl
-                                            border
-                                            border-solid
-                                            border-[#dddddd]
-                                            font-defaultBold
-                                            text-center
-                                            text-[#8a2be2]
-                                            text-[12px]
-                                            2xs:text-[14px]
-                                            ml-[5px]
-                                        ">{data.data.details.distance.text}</div>
-                                    </div>
-                                </div>
+                            <>
                                 {
-                                    !driversLiveLocation ?
+                                    showRequestedAcceptedPrompt ?
                                     <div className="
                                         block
                                         w-full
-                                        absolute
-                                        z-[30]
-                                        bottom-[98px]
-                                        left-0
-                                        bg-[#ffffff]
+                                        h-full
                                         overflow-hidden
+                                        pb-[169px]
+                                        md:pb-[90px]
+                                        relative
                                     ">
                                         <div className="
                                             block
-                                            w-[94%]
-                                            max-w-[1000px]
-                                            mx-auto
-                                            font-defaultRegular
-                                            text-left
-                                            text-[#111111]
-                                            text-[12px]
-                                            2xs:text-[14px]
-                                            leading-[40px]
-                                        ">Waiting for driver's live location...</div>
+                                            w-full
+                                            h-full
+                                            overflow-auto
+                                            pt-[55px]
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[94%]
+                                                max-w-[1000px]
+                                                mx-auto
+                                                py-[40px]
+                                            ">
+                                                <div className="
+                                                    block
+                                                    w-full
+                                                    overflow-visible
+                                                    pl-[75px]
+                                                    2xs:pl-[95px]
+                                                    relative
+                                                    mb-[40px]
+                                                ">
+                                                    <div className="
+                                                        block
+                                                        w-[60px]
+                                                        2xs:w-[80px]
+                                                        h-[60px]
+                                                        2xs:h-[80px]
+                                                        bg-[#009900]
+                                                        mx-auto
+                                                        p-[14px]
+                                                        2xs:p-[16px]
+                                                        rounded-[50%]
+                                                        absolute
+                                                        top-1/2
+                                                        -translate-y-1/2
+                                                        left-0
+                                                    ">
+                                                        <CheckIcon color="#ffffff" strokeWidth={80} animate={true}/>
+                                                    </div>
+                                                    <h1 className="
+                                                        block
+                                                        w-full
+                                                        font-defaultBold
+                                                        text-left
+                                                        text-[#111111]
+                                                        text-[22px]
+                                                        2xs:text-[25px]
+                                                        leading-[30px]
+                                                        mb-[5px]
+                                                    ">Request Accepted</h1>
+                                                    <div className="
+                                                        block
+                                                        w-full
+                                                        font-defaultRegular
+                                                        text-left
+                                                        text-[12px]
+                                                        2xs:text-[14px]
+                                                        leading-[18px]
+                                                        text-[#555555]
+                                                    ">Please wait for your ride at the pickup location</div>
+                                                </div>
+                                                <div className="
+                                                    block
+                                                    w-full
+                                                    text-left
+                                                    mb-[40px]
+                                                ">
+                                                    <div className="
+                                                        inline-block
+                                                        align-middle
+                                                        leading-[30px]
+                                                        rounded-[20px]
+                                                        px-[15px]
+                                                        bg-[#ffffff]
+                                                        shadow-xl
+                                                        border
+                                                        border-solid
+                                                        border-[#dddddd]
+                                                        font-defaultBold
+                                                        text-center
+                                                        text-[#8a2be2]
+                                                        text-[12px]
+                                                        2xs:text-[14px]
+                                                    ">₹{data.data.details.price}</div>
+                                                    <div className="
+                                                        inline-block
+                                                        align-middle
+                                                        leading-[30px]
+                                                        rounded-[20px]
+                                                        px-[15px]
+                                                        bg-[#ffffff]
+                                                        shadow-xl
+                                                        border
+                                                        border-solid
+                                                        border-[#dddddd]
+                                                        font-defaultBold
+                                                        text-center
+                                                        text-[#8a2be2]
+                                                        text-[12px]
+                                                        2xs:text-[14px]
+                                                        ml-[5px]
+                                                    ">{data.data.details.distance.text}</div>
+                                                </div>
+                                                <div className="
+                                                    block
+                                                    w-full
+                                                ">
+                                                    <div className="
+                                                        block
+                                                        w-full
+                                                        relative
+                                                        z-[10]
+                                                        overflow-hidden
+                                                        pl-[20px]
+                                                    ">
+                                                        <div className="
+                                                            block
+                                                            w-[10px]
+                                                            h-full
+                                                            absolute
+                                                            top-0
+                                                            mt-[5px]
+                                                            left-0
+                                                        ">
+                                                            <div className="
+                                                                block
+                                                                w-[10px]
+                                                                h-[10px]
+                                                                bg-[#111111]
+                                                                rounded-[50%]
+                                                            "></div>
+                                                            <div className="
+                                                                block
+                                                                w-[2px]
+                                                                h-full
+                                                                absolute
+                                                                top-[14px]
+                                                                left-[4px]
+                                                                bg-[#888888]
+                                                            "></div>
+                                                        </div>
+                                                        <div className="
+                                                            block
+                                                            w-full
+                                                            font-defaultRegular
+                                                            text-left
+                                                            text-[#888888]
+                                                            text-[12px]
+                                                            2xs:text-[14px]
+                                                            leading-[20px]
+                                                            mb-[5px]
+                                                        ">Pickup Location</div>
+                                                        <div className="
+                                                            block
+                                                            w-full
+                                                            font-defaultRegular
+                                                            text-left
+                                                            text-[#111111]
+                                                            text-[12px]
+                                                            2xs:text-[14px]
+                                                            leading-[20px]
+                                                        ">{data.data.details.pickupLocation.address}</div>
+                                                    </div>
+                                                    <div className="
+                                                        block
+                                                        w-[2px]
+                                                        h-[30px]
+                                                        ml-[4px]
+                                                        bg-[#888888]
+                                                    "></div>
+                                                    <div className="
+                                                        block
+                                                        w-full
+                                                        relative
+                                                        z-[10]
+                                                        overflow-hidden
+                                                        pl-[20px]
+                                                    ">
+                                                        <div className="
+                                                            block
+                                                            w-[10px]
+                                                            h-full
+                                                            absolute
+                                                            top-0
+                                                            mt-[5px]
+                                                            left-0
+                                                        ">
+                                                            <div className="
+                                                                block
+                                                                w-[10px]
+                                                                h-[10px]
+                                                                bg-[#111111]
+                                                            "></div>
+                                                            <div className="
+                                                                block
+                                                                w-[2px]
+                                                                h-full
+                                                                absolute
+                                                                -top-1/2
+                                                                -translate-y-1/2
+                                                                -mt-[4px]
+                                                                left-[4px]
+                                                                bg-[#888888]
+                                                            "></div>
+                                                        </div>
+                                                        <div className="
+                                                            block
+                                                            w-full
+                                                            font-defaultRegular
+                                                            text-left
+                                                            text-[#888888]
+                                                            text-[12px]
+                                                            2xs:text-[14px]
+                                                            leading-[20px]
+                                                            mb-[5px]
+                                                        ">Destination</div>
+                                                        <div className="
+                                                            block
+                                                            w-full
+                                                            font-defaultRegular
+                                                            text-left
+                                                            text-[#111111]
+                                                            text-[12px]
+                                                            2xs:text-[14px]
+                                                            leading-[20px]
+                                                        ">{data.data.details.destination.address}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div className="
                                             block
-                                            w-[300%]
-                                            h-[3px]
+                                            w-full
+                                            h-[169px]
+                                            md:h-[90px]
+                                            pt-[10px]
                                             absolute
-                                            top-0
+                                            bottom-0
                                             left-0
-                                            -translate-x-[60%]
-                                            bg-no-repeat
-                                            bg-cover
-                                            bg-center
-                                        " style={{backgroundImage: `url(${RippleThick})`}}></div>
-                                    </div> : ""
-                                }
-                                <div className="
-                                    block
-                                    w-full
-                                    h-full
-                                    bg-[#dddddd]
-                                    relative
-                                    z-[10]
-                                " ref={mapsContainerRef}></div>
-                                <div className="
-                                    block
-                                    w-full
-                                    h-[100px]
-                                    overflow-hidden
-                                    pt-[9px]
-                                    bg-[#ffffff]
-                                    absolute
-                                    z-[20]
-                                    bottom-0
-                                    left-0
-                                    border-t
-                                    border-solid
-                                    border-[#bbbbbb]
-                                ">
-                                    <div className="
-                                        grid
-                                        grid-cols-2
-                                        gap-[6px]
-                                        w-[94%]
-                                        max-w-[1000px]
-                                        mx-auto
-                                    ">
-                                        <a href={`tel:${data.data.details.driver.phoneNumber}`} target="_blank" rel="noopener noreferrer" className={`
+                                        ">
+                                            <div className="
+                                                grid
+                                                grid-cols-2
+                                                md:grid-cols-3
+                                                gap-[10px]
+                                                w-[94%]
+                                                max-w-[1000px]
+                                                mx-auto
+                                            ">
+                                                <button type="button" className="
+                                                    w-full
+                                                    h-[55px]
+                                                    font-defaultBold
+                                                    text-center
+                                                    text-[#ffffff]
+                                                    text-[14px]
+                                                    bg-[#111111]
+                                                    active:bg-[#444444]
+                                                    col-span-2
+                                                    md:col-span-1
+                                                " onClick={startTracking}>
+                                                    <span className="
+                                                        inline-block
+                                                        align-baseline
+                                                        w-[15px]
+                                                        h-[15px]
+                                                        rounded-[50%]
+                                                        bg-[#cd5c5c]
+                                                        pulse-dot
+                                                        mr-[10px]
+                                                        relative
+                                                        top-[4px]
+                                                    "></span>
+                                                    <span className="
+                                                        inline-block
+                                                        align-middle
+                                                    ">Track Your Ride</span>
+                                                </button>
+                                                <a href={`tel:${data.data.details.driver.phoneNumber}`} target="_blank" rel="noopener noreferrer" className={`
+                                                    w-full
+                                                    leading-[53px]
+                                                    font-defaultBold
+                                                    text-center
+                                                    text-[13px]
+                                                    2xs:text-[15px]
+                                                    text-[#111111]
+                                                    bg-[#dddddd]
+                                                    active:bg-[#cccccc]
+                                                `}>Call Driver</a>
+                                                <Link to="?cancel" className={`
+                                                    w-full
+                                                    leading-[53px]
+                                                    font-defaultBold
+                                                    text-center
+                                                    text-[13px]
+                                                    2xs:text-[15px]
+                                                    text-[#111111]
+                                                    bg-[#dddddd]
+                                                    active:bg-[#cccccc]
+                                                `}>Cancel Ride</Link>
+                                            </div>
+                                        </div>
+                                    </div> :
+                                    <div className={`
+                                        block
+                                        w-full
+                                        h-full
+                                        ${driversLiveLocation ? "pb-[100px]" : "pb-[140px]"}
+                                        relative
+                                        z-[10]
+                                        duration-[.2]
+                                        ease-in-out
+                                    `}>
+                                        <div className="
+                                            block
                                             w-full
-                                            leading-[50px]
-                                            font-defaultBold
-                                            text-center
-                                            text-[13px]
-                                            2xs:text-[15px]
-                                            text-[#ffffff]
-                                            bg-[#111111]
-                                            active:bg-[#444444]
-                                            rounded-[25px]
-                                        `}>Call Driver</a>
-                                        <Link to="?cancel" className={`
+                                            h-0
+                                            overflow-visible
+                                            absolute
+                                            z-[20]
+                                            top-[65px]
+                                            left-0
+                                        ">
+                                            <div className="
+                                                block
+                                                w-[94%]
+                                                max-w-[1000px]
+                                                mx-auto
+                                                text-left
+                                            ">
+                                                <div className="
+                                                    inline-block
+                                                    align-middle
+                                                    leading-[30px]
+                                                    rounded-[20px]
+                                                    px-[15px]
+                                                    bg-[#ffffff]
+                                                    shadow-xl
+                                                    border
+                                                    border-solid
+                                                    border-[#dddddd]
+                                                    font-defaultBold
+                                                    text-center
+                                                    text-[#8a2be2]
+                                                    text-[12px]
+                                                    2xs:text-[14px]
+                                                ">₹{data.data.details.price}</div>
+                                                <div className="
+                                                    inline-block
+                                                    align-middle
+                                                    leading-[30px]
+                                                    rounded-[20px]
+                                                    px-[15px]
+                                                    bg-[#ffffff]
+                                                    shadow-xl
+                                                    border
+                                                    border-solid
+                                                    border-[#dddddd]
+                                                    font-defaultBold
+                                                    text-center
+                                                    text-[#8a2be2]
+                                                    text-[12px]
+                                                    2xs:text-[14px]
+                                                    ml-[5px]
+                                                ">{data.data.details.distance.text}</div>
+                                            </div>
+                                        </div>
+                                        {
+                                            !driversLiveLocation ?
+                                            <div className="
+                                                block
+                                                w-full
+                                                absolute
+                                                z-[30]
+                                                bottom-[98px]
+                                                left-0
+                                                bg-[#ffffff]
+                                                overflow-hidden
+                                            ">
+                                                <div className="
+                                                    block
+                                                    w-[94%]
+                                                    max-w-[1000px]
+                                                    mx-auto
+                                                    font-defaultRegular
+                                                    text-left
+                                                    text-[#111111]
+                                                    text-[12px]
+                                                    2xs:text-[14px]
+                                                    leading-[40px]
+                                                ">Waiting for driver's live location...</div>
+                                                <div className="
+                                                    block
+                                                    w-[300%]
+                                                    h-[3px]
+                                                    absolute
+                                                    top-0
+                                                    left-0
+                                                    -translate-x-[60%]
+                                                    bg-no-repeat
+                                                    bg-cover
+                                                    bg-center
+                                                " style={{backgroundImage: `url(${RippleThick})`}}></div>
+                                            </div> : ""
+                                        }
+                                        <div className="
+                                            block
                                             w-full
-                                            leading-[50px]
-                                            font-defaultBold
-                                            text-center
-                                            text-[13px]
-                                            2xs:text-[15px]
-                                            text-[#cd5c5c]
-                                            active:bg-[#dddddd]
-                                            rounded-[25px]
-                                            border-[2px]
+                                            h-full
+                                            bg-[#dddddd]
+                                            relative
+                                            z-[10]
+                                        " ref={mapsContainerRef}></div>
+                                        <div className="
+                                            block
+                                            w-full
+                                            h-[100px]
+                                            overflow-hidden
+                                            pt-[9px]
+                                            bg-[#ffffff]
+                                            absolute
+                                            z-[20]
+                                            bottom-0
+                                            left-0
+                                            border-t
                                             border-solid
-                                            border-[#cd5c5c]
-                                        `}>Cancel</Link>
+                                            border-[#bbbbbb]
+                                        ">
+                                            <div className="
+                                                grid
+                                                grid-cols-2
+                                                gap-[6px]
+                                                w-[94%]
+                                                max-w-[1000px]
+                                                mx-auto
+                                            ">
+                                                <a href={`tel:${data.data.details.driver.phoneNumber}`} target="_blank" rel="noopener noreferrer" className={`
+                                                    w-full
+                                                    leading-[50px]
+                                                    font-defaultBold
+                                                    text-center
+                                                    text-[13px]
+                                                    2xs:text-[15px]
+                                                    text-[#ffffff]
+                                                    bg-[#111111]
+                                                    active:bg-[#444444]
+                                                    rounded-[25px]
+                                                `}>Call Driver</a>
+                                                <Link to="?cancel" className={`
+                                                    w-full
+                                                    leading-[50px]
+                                                    font-defaultBold
+                                                    text-center
+                                                    text-[13px]
+                                                    2xs:text-[15px]
+                                                    text-[#cd5c5c]
+                                                    active:bg-[#dddddd]
+                                                    rounded-[25px]
+                                                    border-[2px]
+                                                    border-solid
+                                                    border-[#cd5c5c]
+                                                `}>Cancel</Link>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div> :
+                                }
+                            </> :
                             <RideHistoryItem
                                 data={data}
                             />

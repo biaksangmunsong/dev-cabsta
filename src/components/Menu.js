@@ -104,7 +104,7 @@ const Menu = () => {
                     relative
                     overflow-visible
                 ">
-                    <Link to="/history/63ae9c5d083c32a01185c224" type="button" className="
+                    <Link to="/history/63b7e99aeef14f87e59f932f" type="button" className="
                         inline-block
                         w-[40px]
                         h-[40px]

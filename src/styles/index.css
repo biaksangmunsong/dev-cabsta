@@ -102,3 +102,17 @@ input, textarea {
 .pulse-dot {
 	animation: pulseDot 2s ease-in-out infinite;
 }
+
+@keyframes animateCheckIcon {
+	0% {
+		stroke-dashoffset: 800;
+	}
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+
+.animate-check-icon {
+	stroke-dasharray: 800;
+	animation: animateCheckIcon .6s ease-in forwards;
+}

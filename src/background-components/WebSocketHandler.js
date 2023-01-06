@@ -81,7 +81,7 @@ const WebSocketHandler = () => {
 				})
 				window.socket.on("ride-request-accepted", ride => {
 					window.acceptedRideRequestData = ride
-					navigate(`/history/${ride._id}`)
+					navigate(`/history/${ride._id}`, {replace: window.location.pathname === "/nearby-drivers" ? true : false})
 				})
 			}
 		}
